@@ -1,10 +1,13 @@
 # Default style for the Visualisation skill.
 # Arial is preferred for Nature-style scientific figure lettering; Helvetica and
 # DejaVu Sans provide fallbacks on systems where Arial is unavailable.
+# All text stays within the skill's 5-14 pt range and all lines within 0.25-1.5 pt.
+# PNG resolution is not set here: the project's config.yaml (png_dpi) owns it.
 
 font.family: sans-serif
 font.sans-serif: Arial, Helvetica, DejaVu Sans
-axes.prop_cycle: cycler('color', ['black'])
+# Black by default; series are told apart by line style before any color is added.
+axes.prop_cycle: cycler('color', ['black', 'black', 'black', 'black']) + cycler('linestyle', ['-', '--', ':', '-.'])
 # Use a complete sans-serif math font for chemical subscripts and other notation.
 mathtext.fontset: dejavusans
 font.weight: normal
@@ -18,15 +21,27 @@ axes.labelsize: 10
 xtick.labelsize: 9
 ytick.labelsize: 9
 legend.fontsize: 9
+legend.frameon: False
 figure.titlesize: 14
 lines.linewidth: 0.75
+lines.markersize: 3
+lines.markeredgewidth: 0.5
 patch.linewidth: 0.25
+hatch.linewidth: 0.25
 axes.linewidth: 0.5
 xtick.major.width: 0.5
 ytick.major.width: 0.5
 xtick.minor.width: 0.5
 ytick.minor.width: 0.5
+xtick.major.size: 3.5
+ytick.major.size: 3.5
+xtick.minor.size: 2
+ytick.minor.size: 2
 svg.fonttype: none
+# A fixed salt keeps SVG element ids identical between runs.
+svg.hashsalt: visualisation
+pdf.fonttype: 42
+ps.fonttype: 42
 figure.facecolor: white
 axes.facecolor: white
 savefig.facecolor: white

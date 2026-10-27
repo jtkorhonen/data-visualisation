@@ -1,6 +1,6 @@
 ---
 name: visualisation
-description: Create or maintain self-contained, reproducible Python visualisation projects driven by Snakemake, with inputs/ for source data, scripts/ for Polars-based analysis and Matplotlib/Seaborn plotting, and outputs/ for derived data and 300-dpi PNG plus SVG figures. Use when a charting task needs a reusable project workflow; do not use for inline-only exploratory visuals.
+description: Create or maintain self-contained, reproducible Python visualisation projects driven by Snakemake and uv, with inputs/ for source data, scripts/ for Polars-based analysis and Matplotlib/Seaborn plotting, and outputs/ for derived data and 450-dpi PNG plus SVG figures. Use when a charting task needs a reusable project workflow; do not use for inline-only exploratory visuals.
 metadata:
   short-description: Reproducible Snakemake visualisation projects
 ---
@@ -11,198 +11,171 @@ Create reproducible, self-contained visualisation projects. The project itself i
 source of truth: source data live in `inputs/`, transformations and plotting code live
 in `scripts/`, and every generated file is written under `outputs/` through Snakemake.
 
+Start every new project from the bundled, tested [template](assets/template/) and
+check it with [`scripts/check_project.py`](scripts/check_project.py) before handing off.
+
 ## Required project contract
 
-Every project must be runnable from its root with the local virtual environment and
-Snakemake. Use this layout:
+Every project must be runnable from its root with uv and Snakemake. Use this layout:
 
 ```text
 project/
-├── inputs/          # user-supplied, immutable source data
-├── outputs/         # Snakemake-managed derived data and figures
-├── scripts/         # Python scripts called by the Snakefile
-├── styles/          # Matplotlib style sheets for visual formatting
+├── inputs/            # user-supplied, immutable source data
+├── outputs/           # Snakemake-managed derived data and figures
+├── scripts/           # Python scripts called by the Snakefile
+│   └── figure_style.py  # shared style, sizing, label and export helpers
+├── styles/            # Matplotlib style sheets for visual formatting
 │   └── visualisation.mplstyle
 ├── Snakefile
-├── README.md         # exact setup, run, output, and reproduction instructions
-├── requirements.txt
-└── .venv/           # local Python environment; do not commit it
+├── config.yaml        # style path, PNG dpi, figure size
+├── README.md          # exact setup, run, output, and reproduction instructions
+├── pyproject.toml     # direct dependencies (uv, non-packaged project)
+├── uv.lock            # exact resolved versions
+├── requirements.txt   # exported from uv.lock for the venv fallback
+└── .venv/             # local Python environment; do not commit it
 ```
 
 Do not silently download data, write outside `outputs/`, or modify files in `inputs/`.
 Keep all input paths, transformations, random seeds, filters, aggregation choices,
-and output paths explicit in the Snakefile or scripts. If an external resource is
-unavoidable, declare it as an input or an explicitly documented prerequisite.
+and output paths explicit in the Snakefile, `config.yaml`, or scripts. If an external
+resource is unavoidable, declare it as an input or an explicitly documented prerequisite.
 
-## Environment setup
+**Reproducibility means the outputs depend only on files inside the project folder.**
+Caches outside the folder (uv, Matplotlib font cache) are fine because they do not change
+results. Things that could change results must be excluded: a user-level
+`matplotlibrc` (the template resets to Matplotlib defaults before applying the project
+style), environment variables, network access, unseeded randomness, and timestamps
+embedded in figure files (the template strips them, so a forced rebuild is byte-identical).
 
-Require Python 3.14 or newer and the standard-library `venv` module. Verify the
-interpreter before creating or reusing the environment:
+## New project setup
+
+1. Copy `assets/template/` to the project folder. Do not overwrite existing files
+   without inspecting them first.
+2. Copy the style sheet into `styles/`: [`assets/visualisation.mplstyle`](assets/visualisation.mplstyle)
+   by default, or [`assets/nature.mplstyle`](assets/nature.mplstyle) for Nature-style work
+   (then read [references/nature.md](references/nature.md)).
+3. Replace the example data, scripts, rules, and README content with the real ones.
+   Keep the patterns: one rule per chart, `figure_style.py` helpers, quoted interpreter.
+4. Create the environment and lock it, then export the fallback requirements:
 
 ```bash
-python3.14 --version
-python3.14 -m venv --help
-python3.14 -m venv .venv
+uv sync
+uv export --format requirements.txt --no-emit-project --output-file requirements.txt
 ```
 
-Use the environment's interpreter and Snakemake executable for all commands:
+The project is a non-packaged uv project (`[tool.uv] package = false`; created by
+`uv init --bare --no-package` when starting without the template): uv manages
+dependencies and `.venv`, but never builds or installs the folder itself. Add
+dependencies with `uv add <package>`, then re-export `requirements.txt`. Commit both
+`uv.lock` and `requirements.txt`.
+
+Run everything through the project environment:
 
 ```bash
-.venv/bin/python -m pip install --upgrade pip
+uv run snakemake --cores 1
+```
+
+**Fallback without uv** (any Python 3.14 or newer with the standard-library `venv`):
+
+```bash
+python3 --version
+python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
-XDG_CACHE_HOME="$PWD/.cache" .venv/bin/snakemake --cores 1 --printshellcmds
+.venv/bin/snakemake --cores 1
 ```
 
-On Windows, use `.venv\\Scripts\\python` and `.venv\\Scripts\\snakemake`.
-Do not add `venv` to `requirements.txt`; it is a Python standard-library module. If
-Python 3.14 or `venv` is unavailable, report the prerequisite clearly instead of
-silently using an older interpreter.
-
-For a new project, begin `requirements.txt` with the direct runtime dependencies:
-
-```text
-matplotlib
-numpy
-polars
-seaborn
-snakemake
-```
-
-Resolve and install them in `.venv`, then record the resolved environment when exact
-replay matters (for example, with `.venv/bin/python -m pip freeze > requirements.txt`).
-Do not overwrite an existing requirements file without inspecting it first.
+On Windows, use `.venv\Scripts\python` and `.venv\Scripts\snakemake`. If neither uv nor
+Python 3.14+ is available, report the prerequisite clearly instead of silently using an
+older interpreter. Do not add `venv` to the dependencies; it is part of the standard library.
 
 Seaborn currently has pandas as an upstream runtime dependency. Keep Polars as the
 only user-facing table/data-frame API: do not import pandas or use pandas for loading,
-cleaning, joining, reshaping, or analysis. If Seaborn installs pandas transitively,
-record it as an indirect compatibility dependency and do not expose it in project
-code. Prefer passing NumPy arrays or simple mappings at the Seaborn plotting boundary
-when a function does not accept a Polars frame directly.
+cleaning, joining, reshaping, or analysis. Pass NumPy arrays or simple mappings at the
+Seaborn plotting boundary.
 
 ## Standard workflow
 
 1. Inspect the project before editing. Preserve existing inputs, scripts, outputs,
-   requirements, and Snakefile rules unless the requested change clearly owns them.
-2. Create the required directories and a minimal Snakefile. Make each generated file
-   a declared rule output; use `snakemake --cores 1` as the smoke test.
-3. Load source files with Polars. Validate column names, data types, units, row
+   dependency files, and Snakefile rules unless the requested change clearly owns them.
+2. Load source files with Polars. Validate column names, data types, units, row
    counts, missing-value codes, ordering, and replicate/subject identifiers before
    plotting. Preserve raw data and write any derived tables to `outputs/`.
-4. Select an honest encoding before styling. Preserve missing observations as gaps,
+3. Select an honest encoding before styling. Preserve missing observations as gaps,
    distinguish zero from missing or censored values, state the estimator and interval,
    and avoid decorative 3-D or dual-axis encodings unless scientifically justified.
-5. Use the object-oriented Matplotlib API for figure construction and Seaborn for
+4. Use the object-oriented Matplotlib API for figure construction and Seaborn for
    statistical layers where useful. Keep plotting deterministic with explicit random
    seeds and declared bootstrap/aggregation settings.
-6. Export every independent chart as its own file in both PNG at 300 dpi and SVG.
-   Inspect the resulting files at their intended physical size, including labels,
-   legends, clipping, contrast, missing-data behavior, and SVG text/font handling.
-7. Write or update `README.md` with the exact prerequisites, environment setup,
-   reproduction command, output inventory, and rerun instructions. The README is part
-   of the deliverable, not an optional afterthought.
-8. Run the full Snakemake workflow from a clean or appropriately updated state. Check
-   that every declared output exists and that rerunning without input changes is
-   up-to-date and does not create hidden files.
+5. Export every chart as its own PNG and SVG pair.
+6. Write or update `README.md` (see [README requirement](#readme-requirement)).
+7. Run the workflow, then the checker, then look at every figure (see
+   [Validation](#validation)).
 
 ## Figure defaults
 
-Unless the user specifies otherwise, use these defaults for every static figure:
+Unless the user specifies otherwise:
 
-- physical size: 120 × 80 mm (`figsize=(120 / 25.4, 80 / 25.4)` inches);
+- physical size: 120 × 80 mm (`figure_width_mm` / `figure_height_mm` in `config.yaml`);
 - sans-serif typography, preferring Arial, then Helvetica, then DejaVu Sans;
-- regular font weight by default; use bold or italic only for intentional semantic
-  emphasis, never as a default for tick labels;
-- largest text: 14 pt; smallest text: 9 pt;
-- thinnest lines: 0.25 pt;
-- axes and tick marks: 0.5 pt;
-- thick plotted lines: at most 1.5 pt;
-- PNG: 300 dpi;
-- SVG: vector output from the same figure;
-- y-axis labels: horizontal and located at the top of the axis by default.
+- regular font weight; use bold or italic only for intentional semantic emphasis;
+- text between 5 and 14 pt — the default style uses 12 pt titles, 10 pt axis labels,
+  and 9 pt ticks, legends, and annotations; the Nature preset uses 5–8 pt;
+- lines between 0.25 pt (fine structure) and 1.5 pt (thickest plotted line, border,
+  or error bar); axes and tick marks 0.5 pt;
+- PNG at 450 dpi, or 600 dpi when asked (`png_dpi` in `config.yaml`, or
+  `uv run snakemake --cores 1 --config png_dpi=600` for one build);
+  the Snakefile rejects other values;
+- SVG: vector output from the same figure, with editable text;
+- y-axis labels: horizontal and above the top-left of the axis.
 
-Use an explicit Matplotlib style context and keep all sizes within the 9–14 pt range.
-A practical starting point is a 14 pt title, 10–11 pt axis labels, and 9 pt ticks,
-legend text, and secondary annotations. Use 0.25 pt only for fine structure and never
-exceed 1.5 pt for plotted lines, borders, or error bars.
+Store global visual formatting in the style sheet in `styles/` rather than in
+`rcParams` dictionaries inside scripts. Keep data semantics, plot-specific annotations,
+and scientifically meaningful encodings in the script; keep reusable typography, line
+widths, the color/line-style cycle, and font-embedding settings in the style sheet.
+Build settings that may change per run (style path, dpi, size) live in `config.yaml`
+and reach scripts as Snakemake `params`, so changing them reruns the affected rules.
 
-Store global visual formatting in a separate Matplotlib style sheet, normally
-`styles/visualisation.mplstyle`, rather than duplicating `rcParams` dictionaries in
-plotting scripts. Load it explicitly with `matplotlib.style.context(style_path)` (or
-the equivalent `matplotlib.style.use` call). Keep data semantics, plot-specific
-annotations, and scientifically meaningful encodings in the script; keep reusable
-typography, line widths, colors, grids, and export/font settings in the style sheet.
-Declare the style sheet as a Snakemake input so changing it regenerates the figures.
-For new projects, start from the bundled [default style template](assets/visualisation.mplstyle).
-Its Arial-first fallback stack is appropriate for Nature-style scientific figures, but
-it is not a declaration of journal compliance; verify the target journal's current
-artwork instructions before submission.
+The style sheets are a starting point, not a declaration of journal compliance; verify
+the target journal's current artwork instructions before submission.
 
-An additional [Nature-oriented style preset](assets/nature.mplstyle) is available when
-the requested destination is Nature or a Nature-style manuscript. It is a starting
-preset, not a compliance certificate. Select the final physical width explicitly:
-89 mm for single-column, 120–136 mm for an intermediate figure, or 183 mm for
-full-width artwork; keep the final height at or below 247 mm. The preset uses smaller
-Nature-style lettering than the general default: 5–7 pt for ordinary text and 8 pt
-for lowercase, bold, upright panel labels. Use editable vector text (`pdf.fonttype`
-and `ps.fonttype` Type 42, `svg.fonttype` none) and export image-containing artwork
-at 450 dpi or higher where the current Nature instructions require it. Nature's
-accepted final format and color-mode rules vary by artwork type and submission phase,
-so check the live guide before submission. Record the chosen width, height, export
-format, DPI, and any deviations in the project README. The source to re-check is
-[Nature's figure specifications](https://research-figure-guide.nature.com/figures/preparing-figures-our-specifications/).
+### Figure construction
 
-When a Nature-style deliverable contains multiple panels, follow the companion
-[panel-building and export guide](https://research-figure-guide.nature.com/figures/building-and-exporting-figure-panels/):
-
-- Build the complete figure at its final physical size, with consistent panel widths,
-  gutters, fonts, axis treatment, and line weights. Do not assemble panels from
-  screenshots or rasterized previews.
-- Use lowercase, bold, upright panel labels (`a`, `b`, `c`, …), normally 8 pt at
-  final size, in a consistent upper-left position. Keep labels and other text clear
-  of data and do not rely on a figure title to identify panels.
-- Keep line art, text, labels, and panel geometry editable. Embed image panels at
-  their required effective resolution and never upsample them to create apparent
-  detail. Preserve the editable source alongside the exported deliverable.
-- Export one combined file for one multi-panel figure. Use PDF/EPS or another
-  journal-accepted vector format for line-art or combination figures; use the
-  required high-resolution raster format for photographs or raster panels. Keep the
-  project’s PNG/SVG exports as reproducible previews, but record the Nature
-  production export separately in the README.
-- Inspect the combined export at final size for clipping, unintended whitespace,
-  inconsistent baselines, missing fonts, transparency changes, and panel-label
-  collisions. Do not use `bbox_inches="tight"` when it would change the declared
-  final dimensions.
-
-The guide's production requirements can change by journal, article type, and
-submission stage. Treat these as a documented starting workflow and verify the live
-Nature instructions immediately before submission.
-
-For the readability-oriented axis-label convention, include
-`yaxis.labellocation: top` in the style sheet. Matplotlib exposes the location as an
-rcParam but not the label rotation, so each plotting script must apply the final
-horizontal label explicitly:
+Use the helpers in the template's `scripts/figure_style.py`:
 
 ```python
-ax.set_ylabel(
-    "quantity (unit)",
-    rotation=0,
-    loc="top",
-    labelpad=6,
+from figure_style import (
+    figure_arguments, new_figure, save_figure,
+    set_horizontal_ylabel, set_title_above_ylabel, style_context,
 )
-ax.yaxis.label.set_horizontalalignment("left")
-ax.yaxis.label.set_verticalalignment("bottom")
-ax.set_title("Panel title", y=1.08)
+
+args = figure_arguments("Plot measurement by day").parse_args()
+with style_context(args.style):                  # Matplotlib defaults + project style
+    figure, axes = new_figure(args.width_mm, args.height_mm)
+    ...                                            # plot; pass ax=axes to Seaborn
+    set_horizontal_ylabel(axes, "quantity (unit)")
+    set_title_above_ylabel(axes, "Chart title")
+    save_figure(figure, args.png, args.svg, args.dpi)
 ```
 
-The explicit title position is required because a horizontal y-label occupies the
-usual title band. Choose the `y` value after inspecting the figure at its target size;
-use one layout engine and check for collisions or clipping.
+What the helpers enforce, if you need to write equivalent code:
+
+- Do not import `matplotlib.pyplot`. Create `matplotlib.figure.Figure` directly; it
+  saves PNG and SVG without a backend or canvas setup.
+- Use `layout="constrained"` and no other layout engine. Do not call `tight_layout()`
+  or use `bbox_inches="tight"`; it changes the exported physical size.
+- `import matplotlib.style` explicitly; `import matplotlib` alone does not expose it.
+- Matplotlib exposes the y-label location as an rcParam (`yaxis.labellocation: top`)
+  but not its rotation, so the horizontal label is set per axes. The title is then
+  padded in points to clear it. Long titles are not constrained by the layout engine
+  and can be clipped at the figure edge: keep titles short and check the output.
+- Save with `metadata={"Date": None}` for SVG and `{"Software": None}` for PNG, and
+  keep `svg.hashsalt` in the style, so rebuilds are byte-identical.
 
 ## Color policy
 
-Use black as the default plotting color. The bundled style sets the Matplotlib color
-cycle to black so that an unspecified series, marker, line, or bar does not acquire a
-decorative hue. Do not add color merely to make a figure more attractive.
+Use black as the default plotting color. The bundled styles cycle black lines through
+solid, dashed, dotted, and dash-dot line styles, so several series stay distinguishable
+without hue. Do not add color merely to make a figure more attractive.
 
 Introduce color only when it carries necessary data meaning, such as a continuous
 measurement encoded by a color scale, a categorical distinction that cannot be made
@@ -211,170 +184,139 @@ scientifically established reference convention. Prefer those non-color encoding
 first, and use redundant encoding when feasible so the figure remains interpretable
 in grayscale and by readers with color-vision deficiencies.
 
+Seaborn ignores the style's cycle when `hue=` is used and applies its own palette. Pass
+`palette=` (or `color=`) explicitly whenever you call Seaborn with `hue`.
+
 Every justified use of color must be explicit in the project README or figure
 metadata/caption: state what variable color encodes, why a non-color encoding was not
-sufficient, and which palette or normalization is used. Keep backgrounds, axes,
-ticks, text, and default data marks black or neutral unless a documented data
-encoding requires otherwise. Include the color decision in the final figure audit.
+sufficient, and which perceptually appropriate, color-vision-aware palette or
+normalization is used. Keep backgrounds, axes, ticks, text, and default data marks
+black or neutral unless a documented data encoding requires otherwise.
 
 ## Chart granularity
 
 Create multiple independent charts when the data support multiple views. Each chart
-must be a separate reproducible output file, with its own PNG and SVG exports, rather
-than a single figure containing subplots. Give each chart a clear filename, title,
-axis labels, and README entry. Reuse shared loading, validation, and styling code
-across the chart scripts or functions.
+is a separate output with its own PNG and SVG, its own Snakemake rule, a clear
+filename, title, axis labels with units, and a README entry. Reuse shared loading,
+validation, and styling code across the chart scripts.
 
-Use a multi-panel figure only when the panels are so tightly coupled that separating
-them would destroy the intended comparison or scientific meaning. Document that
-reason in the README and still treat the combined figure as one explicitly named
-exceptional product.
-
-Use `layout="constrained"` or another single layout engine. Do not combine it with
-`tight_layout()`. Avoid `bbox_inches="tight"` when exact physical dimensions matter;
-it changes the exported page size.
-
-Do not import `matplotlib.pyplot` in project scripts. Use Matplotlib's explicit OO
-objects and a non-interactive canvas, for example:
-
-```python
-import matplotlib
-
-matplotlib.use("Agg")
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.figure import Figure
-
-fig = Figure(figsize=(120 / 25.4, 80 / 25.4), layout="constrained")
-FigureCanvasAgg(fig)
-ax = fig.add_subplot(1, 1, 1)
-```
-
-Pass an explicit `ax` to Seaborn functions. Save before clearing the figure:
-
-```python
-fig.savefig(snakemake.output.png, dpi=300, format="png")
-fig.savefig(snakemake.output.svg, format="svg")
-fig.clear()
-```
-
-Use `font.family = "sans-serif"`, perceptually appropriate and color-vision-aware
-palettes, and redundant encodings such as markers, line styles, hatching, or direct
-labels. Label quantities and units. Record transformations and uncertainty definitions
-alongside the output or in a machine-readable manifest when the analysis warrants it.
+Build a multi-panel figure **only when the user explicitly asks for one**. Then follow
+the panel guidance in [references/nature.md](references/nature.md#multi-panel-figures-only-when-explicitly-requested),
+which applies to any journal-style multi-panel figure, and name the combined figure
+as its own product in the README.
 
 ## Snakemake conventions
 
-Use `snakemake.input` and `snakemake.output` in scripts rather than hard-coded output
-paths. A minimal multi-chart rule declares every chart's two-format pair explicitly:
+Follow the template's Snakefile:
 
 ```python
+import sys
+
+configfile: "config.yaml"
+
+PYTHON = sys.executable
+
 rule all:
     input:
-        "outputs/xy.png",
-        "outputs/xy.svg",
-        "outputs/xz.png",
-        "outputs/xz.svg"
+        multiext("outputs/figures/measurement_by_day", ".png", ".svg"),
 
-rule figure:
+rule plot_measurement_by_day:
     input:
-        data="inputs/data.csv",
-        code="scripts/figure.py",
-        style="styles/visualisation.mplstyle"
+        data="inputs/measurements.csv",
+        script="scripts/plot_measurement_by_day.py",
+        helpers="scripts/figure_style.py",
+        style=config["style"],
     output:
-        xy_png="outputs/xy.png",
-        xy_svg="outputs/xy.svg",
-        xz_png="outputs/xz.png",
-        xz_svg="outputs/xz.svg"
-    script:
-        "scripts/figure.py"
+        png="outputs/figures/measurement_by_day.png",
+        svg="outputs/figures/measurement_by_day.svg",
+    params:
+        python=PYTHON,
+        dpi=config["png_dpi"],
+        width_mm=config["figure_width_mm"],
+        height_mm=config["figure_height_mm"],
+    shell:
+        "{params.python:q} {input.script:q} --data {input.data:q} --style {input.style:q} "
+        "--png {output.png:q} --svg {output.svg:q} --dpi {params.dpi} "
+        "--width-mm {params.width_mm} --height-mm {params.height_mm}"
 ```
 
-Declare every code file used by a rule as an input so a script edit invalidates the
-affected outputs automatically. If the project path may contain spaces, do not rely on
-an unquoted interpreter path generated by the Snakemake `script:` directive. Quote the
-interpreter explicitly, for example with `shlex.quote(sys.executable)` in a `params`
-value and a `shell:` rule, or use an equivalent path-safe runner. Keep Snakemake and
-Matplotlib caches project-local (`XDG_CACHE_HOME="$PWD/.cache"` and
-`MPLCONFIGDIR=.matplotlib`) when the project must run without writing to user-level
-cache directories.
+- Use one rule per chart or derived table. Keep `all` as the complete public output
+  contract, including every chart file.
+- Use `shell:` rules with `:q`-quoted paths and command-line arguments, not the
+  `script:` directive. Snakemake's `script:` runs the interpreter through an unquoted
+  path and fails when the project path contains spaces (common on macOS, e.g.
+  `~/Library/Application Support`). A side benefit: every script can also run by hand.
+- Declare every file a rule reads as an input: data, the script, imported helper
+  modules, and the style sheet. Snakemake then reruns exactly the affected rules when
+  any of them changes.
+- Use `--dry-run` or `--dag` when checking dependencies and `--rerun-incomplete` when
+  recovering from an interrupted run.
 
 ## README requirement
 
-Before handing off any project, create or update `README.md`. It must tell a new user:
+Before handing off any project, create or update `README.md` (the template has the
+structure). It must tell a new user:
 
-1. what the project does and which input files it expects;
-2. that Python 3.14+ and `venv` are required;
-3. how to create `.venv` and install `requirements.txt`;
-4. the exact Snakemake command that recreates the outputs;
-5. which files appear under `outputs/` and what they contain; and
-6. where the Matplotlib style sheet lives and which visual properties it controls; and
-7. how to force a rerun after an intentional code, style, or input change.
+1. what the project does and which input files it expects, with units and missing-value codes;
+2. that Python 3.14+ and uv are required, with `venv` as the fallback;
+3. how to set up the environment with uv and with the `requirements.txt` fallback;
+4. the exact Snakemake command that recreates the outputs, and how to get 600 dpi;
+5. which files appear under `outputs/` and what they contain;
+6. where the Matplotlib style sheet lives and which visual properties it controls;
+7. any use of color and its justification;
+8. how to force a rerun after an intentional code, style, or input change; and
+9. how to update dependencies and re-export `requirements.txt`.
 
 In the final response, repeat the README's reproduction command and summarize the
 generated outputs so the user does not need to discover the usage instructions alone.
 
-For multiple charts or derived tables, prefer one rule per reproducible product or a
-small set of clearly named rules. Keep the `all` rule as the complete public output
-contract, including every chart file. Use `--dag` or `--dry-run` when checking
-dependencies, and use `--rerun-incomplete` when recovering from an interrupted run.
-
 ## Skill routing
 
-Use the available skills as complementary guidance, while this skill owns the project
-layout and reproducibility contract:
+This skill owns the project layout and reproducibility contract. Use these other skills
+as complementary guidance **if they are available**; skip any that are not installed:
 
-- `polars`: primary loading, validation, joins, reshaping, aggregation, and derived
-  tabular outputs. Do not replace it with pandas.
-- `matplotlib`: explicit OO figure construction, axes, artists, physical sizing, and
-  PNG/SVG export. Adapt its examples to the no-`pyplot` rule above.
+- `polars`: loading, validation, joins, reshaping, aggregation, and derived tables.
+  Do not replace it with pandas.
+- `matplotlib`: OO figure construction, axes, artists, and export. Adapt its examples
+  to the no-`pyplot` rule.
 - `seaborn`: statistical layers, distributions, categorical plots, regression, and
-  faceting. Use explicit estimators, intervals, seeds, and sampling units; keep
-  Polars authoritative at the plotting boundary.
+  faceting. Use explicit estimators, intervals, seeds, and sampling units.
 - `scientific-visualization`: scientific integrity, uncertainty, missing-data handling,
-  accessibility, color semantics, metadata inspection, and final figure audit. Use
-  its publication guidance only when the user supplies a target journal or venue.
-- `visualize`: optional in-conversation preview or interactive explanation. It does
-  not replace the tracked Python/Snakemake pipeline or its static outputs.
-- `infographics`: optional for an explicitly requested infographic or visual explainer.
-  It is not a substitute for exact code-based scientific plots. Because it may require
-  network access, an API key, research, and AI-generated raster output, treat it as an
-  opt-in external step and record the prompt, model, sources, and non-deterministic
-  prerequisite in project provenance.
+  accessibility, color semantics, and final figure audit. Use its publication guidance
+  only when the user supplies a target journal or venue.
+- `visualize`: optional in-conversation preview. It does not replace the tracked
+  Python/Snakemake pipeline or its static outputs.
+- `infographics`: only for an explicitly requested infographic. It is not a substitute
+  for code-based scientific plots; treat it as an opt-in external step and record the
+  prompt, model, sources, and non-deterministic prerequisites in the README.
 
-## Validation checklist
+## Validation
 
-Before handing off a project, verify:
+Run the build, then the bundled checker from the project root with the project's own
+interpreter (the checker uses only the standard library):
 
-- [ ] Python 3.14+ and `venv` were used for `.venv`.
-- [ ] `requirements.txt` contains the complete required environment or an intentional,
-      documented direct-dependency specification.
-- [ ] `README.md` explains setup, reproduction, outputs, and intentional reruns.
-- [ ] A separate `.mplstyle` file describes global chart formatting and is declared as
-      a Snakemake input.
-- [ ] If Nature styling is requested, the project uses the Nature preset or a
-      documented derivative, records the chosen physical width and export settings,
-      and treats it as a starting style pending current journal verification.
-- [ ] Nature multi-panel figures are assembled at final size with consistent geometry,
-      lowercase bold upright panel labels, editable vector text/line art, and a
-      separately documented production export.
-- [ ] No project script imports pandas or `matplotlib.pyplot`.
-- [ ] All source data remain under `inputs/`; all generated products remain under
-      `outputs/`.
-- [ ] Every generated file is declared by Snakemake and the `all` rule is complete.
-- [ ] Independent charts are separate output files, each with PNG and SVG exports;
-      any multi-panel exception is justified in the README.
-- [ ] Figures are exactly 120 × 80 mm unless overridden, use 9–14 pt sans-serif text,
-      and stay within 0.25–1.5 pt line widths.
-- [ ] Axes and major/minor tick marks are 0.5 pt, with tick-label text at 9 pt.
-- [ ] Horizontal y-axis labels use the style's top location and explicit rotation, and
-      axes titles are manually positioned to avoid collisions.
+```bash
+uv run snakemake --cores 1
+uv run python <skill-dir>/scripts/check_project.py . --up-to-date
+```
+
+Add `--size-mm WIDTHxHEIGHT` when the figure size is not 120 × 80 mm (or `--size-mm any`).
+The checker verifies the layout and lock files, no pandas or `pyplot` imports, a PNG
+and SVG for every figure, PNG at 450 or 600 dpi, exact physical size, SVG text 5–14 pt,
+SVG strokes 0.25–1.5 pt, no embedded timestamps, every style sheet referenced by the
+workflow, and (with `--up-to-date`) that a second Snakemake run has nothing to do.
+Fix every `FAIL` line before handing off.
+
+Then confirm by hand what the checker cannot see:
+
+- [ ] Every figure was opened and inspected at final size: no clipped titles or labels,
+      no collisions, readable text, sufficient contrast.
+- [ ] The encoding is honest: missing values, exclusions, units, transformations,
+      uncertainty definitions, and seeds are explicit where relevant.
 - [ ] Figures are black by default; every use of color has a documented data or
       scientific justification, with non-color encodings considered first.
-- [ ] Each figure has both a 300-dpi PNG and an SVG.
-- [ ] Missing values, exclusions, units, transformations, uncertainty, and seeds are
-      explicit where relevant.
-- [ ] The workflow runs successfully with the local Snakemake executable and is
-      up-to-date on a second run.
-- [ ] Editing a declared plotting script causes the relevant rule to rerun.
-- [ ] Exported figures were visually inspected at final size and checked for clipping,
-      contrast, readable text, and honest data encoding.
+- [ ] Charts are separate outputs; a multi-panel figure exists only because the user asked.
+- [ ] If Nature styling was requested, the project follows [references/nature.md](references/nature.md)
+      and records the chosen size, export settings, and pending journal verification.
+- [ ] `README.md` covers every point in the README requirement.
+- [ ] Workflow and checker output is clean: no warnings or errors.

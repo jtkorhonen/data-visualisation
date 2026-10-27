@@ -1,0 +1,76 @@
+# Snakemake workflow: turns inputs/ into derived tables and figures under outputs/.
+# Rules call scripts through a quoted interpreter path so project paths may contain spaces.
+
+import sys
+
+configfile: "config.yaml"
+
+ALLOWED_PNG_DPI = (450, 600)
+if config["png_dpi"] not in ALLOWED_PNG_DPI:
+    raise ValueError(f"png_dpi must be one of {ALLOWED_PNG_DPI}, got {config['png_dpi']!r}")
+
+PYTHON = sys.executable
+STYLE = config["style"]
+FIGURE_HELPERS = "scripts/figure_style.py"
+DATA_LOADER = "scripts/summarise.py"
+FIGURE_ARGS = (
+    "--style {input.style:q} --png {output.png:q} --svg {output.svg:q} "
+    "--dpi {params.dpi} --width-mm {params.width_mm} --height-mm {params.height_mm}"
+)
+
+
+rule all:
+    input:
+        "outputs/data/summary.csv",
+        multiext("outputs/figures/measurement_by_day", ".png", ".svg"),
+        multiext("outputs/figures/measurement_distribution", ".png", ".svg"),
+
+
+rule summarise:
+    input:
+        data="inputs/measurements.csv",
+        script="scripts/summarise.py",
+    output:
+        "outputs/data/summary.csv",
+    params:
+        python=PYTHON,
+    shell:
+        "{params.python:q} {input.script:q} --data {input.data:q} --output {output:q}"
+
+
+rule plot_measurement_by_day:
+    input:
+        data="inputs/measurements.csv",
+        script="scripts/plot_measurement_by_day.py",
+        helpers=FIGURE_HELPERS,
+        loader=DATA_LOADER,
+        style=STYLE,
+    output:
+        png="outputs/figures/measurement_by_day.png",
+        svg="outputs/figures/measurement_by_day.svg",
+    params:
+        python=PYTHON,
+        dpi=config["png_dpi"],
+        width_mm=config["figure_width_mm"],
+        height_mm=config["figure_height_mm"],
+    shell:
+        "{params.python:q} {input.script:q} --data {input.data:q} " + FIGURE_ARGS
+
+
+rule plot_measurement_distribution:
+    input:
+        data="inputs/measurements.csv",
+        script="scripts/plot_measurement_distribution.py",
+        helpers=FIGURE_HELPERS,
+        loader=DATA_LOADER,
+        style=STYLE,
+    output:
+        png="outputs/figures/measurement_distribution.png",
+        svg="outputs/figures/measurement_distribution.svg",
+    params:
+        python=PYTHON,
+        dpi=config["png_dpi"],
+        width_mm=config["figure_width_mm"],
+        height_mm=config["figure_height_mm"],
+    shell:
+        "{params.python:q} {input.script:q} --data {input.data:q} " + FIGURE_ARGS

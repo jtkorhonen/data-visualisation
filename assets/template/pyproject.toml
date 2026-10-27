@@ -1,0 +1,18 @@
+# Dependencies for this visualisation project, managed by uv as a non-packaged project.
+# requirements.txt is exported from uv.lock for environments without uv.
+
+[project]
+name = "visualisation-project"
+version = "0.1.0"
+description = "Reproducible figures built with Snakemake"
+requires-python = ">=3.14"
+dependencies = [
+    "matplotlib",
+    "numpy",
+    "polars",
+    "seaborn",
+    "snakemake",
+]
+
+[tool.uv]
+package = false

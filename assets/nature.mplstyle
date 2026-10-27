@@ -1,7 +1,7 @@
 # Nature-oriented starting style for the Visualisation skill.
 #
-# Based on the Nature Research Figure Guide conventions recorded in the local
-# scientific-visualization skill snapshot (reviewed 2026-10-01): 89 mm single-column,
+# Based on the Nature Research Figure Guide conventions (reviewed 2026-10-01;
+# see references/nature.md for the source links): 89 mm single-column,
 # 120–136 mm intermediate, 183 mm full-width, maximum height 247 mm, 5–7 pt ordinary
 # text, 8 pt lowercase bold upright panel labels, and editable vector text.
 # This is a practical starting point, not a declaration of current journal compliance.
@@ -17,7 +17,8 @@ font.family: sans-serif
 font.sans-serif: Arial, Helvetica, DejaVu Sans
 font.size: 7
 font.weight: normal
-axes.prop_cycle: cycler('color', ['black'])
+# Black by default; series are told apart by line style before any color is added.
+axes.prop_cycle: cycler('color', ['black', 'black', 'black', 'black']) + cycler('linestyle', ['-', '--', ':', '-.'])
 mathtext.fontset: dejavusans
 
 axes.linewidth: 0.5
@@ -50,18 +51,20 @@ lines.linewidth: 1.0
 lines.markersize: 3
 lines.markeredgewidth: 0.4
 patch.linewidth: 0.25
+hatch.linewidth: 0.25
 
 legend.fontsize: 6
 legend.frameon: False
 figure.titlesize: 8
 
-# Keep raster exports suitable for Nature-style image-containing artwork. Scripts
-# may override this explicitly when a project has a different documented contract.
-savefig.dpi: 450
+# PNG resolution is not set here: the project's config.yaml (png_dpi) owns it.
+# Its 450 dpi default suits Nature-style image-containing artwork; 600 is the alternative.
 savefig.facecolor: white
 savefig.edgecolor: white
 savefig.transparent: False
 pdf.fonttype: 42
 ps.fonttype: 42
 svg.fonttype: none
+# A fixed salt keeps SVG element ids identical between runs.
+svg.hashsalt: visualisation
 image.cmap: viridis

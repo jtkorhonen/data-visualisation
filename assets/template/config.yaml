@@ -1,0 +1,6 @@
+# Build settings read by the Snakefile. Override a value for one run, for example:
+#   uv run snakemake --cores 1 --config png_dpi=600
+style: styles/visualisation.mplstyle
+png_dpi: 450  # 450 (default) or 600
+figure_width_mm: 120
+figure_height_mm: 80

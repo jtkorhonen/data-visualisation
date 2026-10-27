@@ -12,10 +12,10 @@ and 450-dpi PNG plus SVG outputs (600 dpi on request).
 Clone the repository into your agent's skills folder, for example for Claude Code:
 
 ```bash
-git clone https://github.com/jtkorhonen/data-visualisation-skill ~/.claude/skills/visualisation
+git clone https://github.com/jtkorhonen/data-visualisation ~/.claude/skills/data-visualisation
 ```
 
-For a single project, clone into `<project>/.claude/skills/visualisation` instead.
+For a single project, clone into `<project>/.claude/skills/data-visualisation` instead.
 `agents/openai.yaml` provides the display name and default prompt for Codex.
 
 ## Contents

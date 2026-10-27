@@ -1,6 +1,8 @@
 ---
-name: visualisation
-description: Create or maintain self-contained, reproducible Python visualisation projects driven by Snakemake and uv, with inputs/ for source data, scripts/ for Polars-based analysis and Matplotlib/Seaborn plotting, and outputs/ for derived data and 450-dpi PNG plus SVG figures. Use when a charting task needs a reusable project workflow; do not use for inline-only exploratory visuals.
+name: data-visualisation
+description: Create or maintain self-contained, reproducible Python data visualisation projects (charts, plots, graphs, scientific figures) driven by Snakemake and uv, with inputs/ for source data, scripts/ for Polars-based analysis and Matplotlib/Seaborn plotting, and outputs/ for derived data and 450-dpi PNG plus SVG figures. Use when the user wants to plot, chart or graph data from files (e.g. CSV) as a reusable, reproducible project, or wants publication or journal figures; do not use for inline-only exploratory visuals.
+license: Unlicense
+compatibility: Requires Python 3.14+, uv (or the standard-library venv as a fallback) and network access to install Python packages.
 metadata:
   short-description: Reproducible Snakemake visualisation projects
 ---

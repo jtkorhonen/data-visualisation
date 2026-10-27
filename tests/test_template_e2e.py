@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-SKILL_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = Path(__file__).resolve().parents[1] / "skills" / "data-visualisation"
 CHECKER = SKILL_ROOT / "scripts" / "check_project.py"
 FIGURES = ("measurement_by_day", "measurement_distribution")
 

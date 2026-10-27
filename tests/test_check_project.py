@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-SKILL_ROOT = Path(__file__).resolve().parents[1]
+SKILL_ROOT = Path(__file__).resolve().parents[1] / "skills" / "data-visualisation"
 sys.path.insert(0, str(SKILL_ROOT / "scripts"))
 
 import check_project  # noqa: E402

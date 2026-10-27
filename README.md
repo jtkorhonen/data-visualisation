@@ -9,26 +9,36 @@ and 450-dpi PNG plus SVG outputs (600 dpi on request).
 
 ## Install
 
-Clone the repository into your agent's skills folder, for example for Claude Code:
+With [`npx skills`](https://skills.sh) (Node.js 22.20+), for all your projects:
 
 ```bash
-git clone https://github.com/jtkorhonen/data-visualisation ~/.claude/skills/data-visualisation
+npx skills add jtkorhonen/data-visualisation --skill data-visualisation -g -a claude-code
 ```
 
-For a single project, clone into `<project>/.claude/skills/data-visualisation` instead.
+Or with the GitHub CLI (`gh skill` is in preview):
+
+```bash
+gh skill install jtkorhonen/data-visualisation data-visualisation --agent claude-code --scope user
+```
+
+Use another `-a` / `--agent` value (for example `codex`) for other agents, or leave out
+`-g` / `--scope user` to install into the current project only. Update later with
+`npx skills update` or `gh skill update --all`.
+
 `agents/openai.yaml` provides the display name and default prompt for Codex.
 
 ## Contents
 
 | Path | Purpose |
 | --- | --- |
-| `SKILL.md` | Instructions the agent follows |
-| `references/nature.md` | Nature-style sizing, export, and multi-panel guidance, loaded only when needed |
-| `assets/template/` | Runnable starter project (uv, Snakemake, two example charts) |
-| `assets/*.mplstyle` | Default and Nature-oriented Matplotlib style sheets |
-| `scripts/check_project.py` | Standard-library checker for a generated project |
-| `evals/` | Sample prompts and data for trying the skill |
-| `tests/` | Unit tests for the checker and end-to-end tests for the template |
+| `skills/data-visualisation/` | The skill itself; this folder is what gets installed |
+| `skills/data-visualisation/SKILL.md` | Instructions the agent follows |
+| `skills/data-visualisation/references/nature.md` | Nature-style sizing, export, and multi-panel guidance, loaded only when needed |
+| `skills/data-visualisation/assets/template/` | Runnable starter project (uv, Snakemake, two example charts) |
+| `skills/data-visualisation/assets/*.mplstyle` | Default and Nature-oriented Matplotlib style sheets |
+| `skills/data-visualisation/scripts/check_project.py` | Standard-library checker for a generated project |
+| `evals/` | Sample prompts and data for trying the skill (not installed) |
+| `tests/` | Layout, checker, and end-to-end template tests (not installed) |
 
 ## Development
 

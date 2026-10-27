@@ -1,0 +1,25 @@
+# Default style for the Visualisation skill.
+# Arial is preferred for Nature-style scientific figure lettering; Helvetica and
+# DejaVu Sans provide fallbacks on systems where Arial is unavailable.
+
+font.family: sans-serif
+font.sans-serif: Arial, Helvetica, DejaVu Sans
+# Use a complete sans-serif math font for chemical subscripts and other notation.
+mathtext.fontset: dejavusans
+font.weight: normal
+axes.titleweight: normal
+figure.titleweight: normal
+font.size: 9
+axes.titlesize: 12
+axes.labelsize: 10
+xtick.labelsize: 9
+ytick.labelsize: 9
+legend.fontsize: 9
+figure.titlesize: 14
+lines.linewidth: 0.75
+patch.linewidth: 0.25
+axes.linewidth: 0.5
+svg.fonttype: none
+figure.facecolor: white
+axes.facecolor: white
+savefig.facecolor: white

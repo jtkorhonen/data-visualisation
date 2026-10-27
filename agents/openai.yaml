@@ -1,0 +1,6 @@
+interface:
+  display_name: "Visualisation"
+  short_description: "Build reproducible Snakemake figures"
+  default_prompt: "Use $visualisation to create a reproducible Snakemake visualisation project from my input data."
+policy:
+  allow_implicit_invocation: true

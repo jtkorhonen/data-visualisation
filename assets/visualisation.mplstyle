@@ -4,11 +4,14 @@
 
 font.family: sans-serif
 font.sans-serif: Arial, Helvetica, DejaVu Sans
+axes.prop_cycle: cycler('color', ['black'])
 # Use a complete sans-serif math font for chemical subscripts and other notation.
 mathtext.fontset: dejavusans
 font.weight: normal
 axes.titleweight: normal
 figure.titleweight: normal
+yaxis.labellocation: top
+axes.titlepad: 10
 font.size: 9
 axes.titlesize: 12
 axes.labelsize: 10
@@ -19,6 +22,10 @@ figure.titlesize: 14
 lines.linewidth: 0.75
 patch.linewidth: 0.25
 axes.linewidth: 0.5
+xtick.major.width: 0.5
+ytick.major.width: 0.5
+xtick.minor.width: 0.5
+ytick.minor.width: 0.5
 svg.fonttype: none
 figure.facecolor: white
 axes.facecolor: white

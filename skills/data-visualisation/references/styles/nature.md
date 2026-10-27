@@ -1,20 +1,36 @@
 # Nature-style figures
 
 Read this only when the requested destination is Nature or a Nature-style manuscript.
-Everything here overrides the general defaults in `SKILL.md`; the rest of the project
-contract (layout, uv, Snakemake, README, checks) still applies.
+Everything here overrides the default style in [visualisation.md](visualisation.md) and the
+general defaults in `SKILL.md`; the rest of the project contract (layout, Snakemake,
+README, checks) still applies.
 
 ## Style preset
 
-Copy [`assets/nature.mplstyle`](../assets/nature.mplstyle) to `styles/nature.mplstyle`
-and set `style: styles/nature.mplstyle` in `config.yaml`. It is a starting preset, not a
-compliance certificate.
+Use the stack's `nature` style implementation (the stack reference says where it lives
+and how to select it). It is a starting preset, not a compliance certificate. Each stack
+implements this table; values are at final printed size, in points.
 
-- Ordinary text 5–7 pt; panel labels 8 pt, lowercase, bold, upright.
-- Lines 0.25–1.5 pt as in the general defaults; axes and ticks 0.5 pt.
-- Editable vector text: `pdf.fonttype` and `ps.fonttype` 42, `svg.fonttype` none.
-- PNG at the default 450 dpi, or 600 dpi (`--config png_dpi=600`) where the guide asks
-  for more for image-containing artwork.
+| Element | Value |
+| --- | --- |
+| Font family | sans-serif: Arial, then Helvetica, then DejaVu Sans; regular weight |
+| Base text, axis labels, chart title | 7 pt |
+| Tick labels, legend text | 6 pt, legend without frame |
+| Panel labels | 8 pt, lowercase, bold, upright (`a`, `b`, `c`, …) |
+| Figure title (rare) | 8 pt |
+| Plotted lines | 1.0 pt |
+| Markers | 3 pt across, 0.4 pt edge |
+| Patch edges and hatching | 0.25 pt |
+| Axis lines | 0.5 pt, black, left and bottom only |
+| Major ticks | 2.5 pt long, 0.5 pt wide, pointing out |
+| Minor ticks | 1.5 pt long, 0.5 pt wide, pointing out |
+| Grid | none |
+| Series | black, line styles solid, dashed, dotted, dash-dot |
+| Default continuous color scale | viridis, used only as the color policy allows |
+| Vector text | editable, embedded as text (TrueType in PDF), never outlines |
+
+PNG at the default 450 dpi, or 600 dpi (`--config png_dpi=600`) where the guide asks
+for more for image-containing artwork.
 
 ## Physical size
 
@@ -52,7 +68,8 @@ Build a multi-panel figure only when the user asks for one. Then follow the
   output too, and record it separately in the README.
 - Inspect the combined export at final size for clipping, unintended whitespace,
   inconsistent baselines, missing fonts, transparency changes, and panel-label
-  collisions. Do not use `bbox_inches="tight"`; it changes the declared final dimensions.
+  collisions. Do not crop the export to its content; that changes the declared final
+  dimensions.
 
 ## Sources to re-check before submission
 

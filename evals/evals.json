@@ -4,7 +4,7 @@
     {
       "id": 1,
       "prompt": "I have monthly rainfall for three stations in rainfall.csv. Make me a reproducible project with charts comparing the stations.",
-      "expected_output": "A project scaffolded from assets/template with rainfall.csv in inputs/, one Snakemake rule per chart, black line-style encodings, 120 x 80 mm figures at 450 dpi, the May gap for north kept as a gap and the 0.0 for south in April shown as a real zero, a README, and check_project.py passing with --up-to-date.",
+      "expected_output": "A project scaffolded from assets/python-matplotlib/template with rainfall.csv in inputs/, one Snakemake rule per chart, black line-style encodings, 120 x 80 mm figures at 450 dpi, the May gap for north kept as a gap and the 0.0 for south in April shown as a real zero, a README, and check_project.py passing with --up-to-date.",
       "files": ["evals/files/rainfall.csv"]
     },
     {

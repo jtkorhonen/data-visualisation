@@ -32,10 +32,11 @@ Use another `-a` / `--agent` value (for example `codex`) for other agents, or le
 | Path | Purpose |
 | --- | --- |
 | `skills/data-visualisation/` | The skill itself; this folder is what gets installed |
-| `skills/data-visualisation/SKILL.md` | Instructions the agent follows |
-| `skills/data-visualisation/references/nature.md` | Nature-style sizing, export, and multi-panel guidance, loaded only when needed |
-| `skills/data-visualisation/assets/template/` | Runnable starter project (uv, Snakemake, two example charts) |
-| `skills/data-visualisation/assets/*.mplstyle` | Default and Nature-oriented Matplotlib style sheets |
+| `skills/data-visualisation/SKILL.md` | Stack-neutral contract the agent always follows |
+| `skills/data-visualisation/references/stacks/` | One file per language stack, loaded only for that stack |
+| `skills/data-visualisation/references/styles/` | Language-neutral style specs (default and Nature), loaded only when chosen |
+| `skills/data-visualisation/assets/<stack>/template/` | Runnable starter project per stack (uv, Snakemake, two example charts) |
+| `skills/data-visualisation/assets/<stack>/styles/` | Each stack's implementation of every style spec |
 | `skills/data-visualisation/scripts/check_project.py` | Standard-library checker for a generated project |
 | `evals/` | Sample prompts and data for trying the skill (not installed) |
 | `tests/` | Layout, checker, and end-to-end template tests (not installed) |

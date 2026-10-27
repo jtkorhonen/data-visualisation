@@ -1,4 +1,4 @@
-# End-to-end tests: scaffold a project from assets/template, build it with uv and Snakemake,
+# End-to-end tests: scaffold a project from assets/python-matplotlib/template, build it with uv and Snakemake,
 # and check the outputs with scripts/check_project.py. Needs uv and network or a warm uv cache.
 
 import shutil
@@ -10,6 +10,7 @@ import pytest
 
 SKILL_ROOT = Path(__file__).resolve().parents[1] / "skills" / "data-visualisation"
 CHECKER = SKILL_ROOT / "scripts" / "check_project.py"
+STACK_ASSETS = SKILL_ROOT / "assets" / "python-matplotlib"
 FIGURES = ("measurement_by_day", "measurement_distribution")
 
 pytestmark = pytest.mark.skipif(shutil.which("uv") is None, reason="uv is not installed")
@@ -23,9 +24,9 @@ def run(args: list[str], cwd: Path) -> subprocess.CompletedProcess:
 
 def scaffold(destination: Path, style: str = "visualisation.mplstyle") -> Path:
     """Copy the template and one bundled style, as SKILL.md instructs."""
-    shutil.copytree(SKILL_ROOT / "assets" / "template", destination)
+    shutil.copytree(STACK_ASSETS / "template", destination)
     (destination / "styles").mkdir(exist_ok=True)
-    shutil.copy(SKILL_ROOT / "assets" / style, destination / "styles" / style)
+    shutil.copy(STACK_ASSETS / "styles" / style, destination / "styles" / style)
     run(["uv", "sync", "--quiet"], destination)
     run(
         ["uv", "export", "--quiet", "--format", "requirements.txt", "--no-emit-project",

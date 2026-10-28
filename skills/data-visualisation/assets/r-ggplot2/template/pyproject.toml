@@ -1,0 +1,14 @@
+# Workflow tool for this visualisation project, managed by uv as a non-packaged project.
+# Only Snakemake lives here; the R packages are in DESCRIPTION and locked by renv in renv.lock.
+
+[project]
+name = "visualisation-project"
+version = "0.1.0"
+description = "Reproducible figures built with Snakemake"
+requires-python = ">=3.14"
+dependencies = [
+    "snakemake",
+]
+
+[tool.uv]
+package = false

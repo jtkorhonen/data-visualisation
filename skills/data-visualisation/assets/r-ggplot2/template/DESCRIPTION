@@ -1,0 +1,13 @@
+Type: project
+Title: Reproducible figures built with Snakemake
+Description: Direct R dependencies of this visualisation project. renv installs
+    them and records the exact versions in renv.lock.
+Depends: R (>= 4.5)
+Imports:
+    dplyr,
+    ggplot2 (>= 4.0.0),
+    gtable,
+    ragg,
+    readr,
+    svglite,
+    systemfonts

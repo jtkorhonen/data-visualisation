@@ -10,7 +10,7 @@ NAME_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 DEVELOPMENT_ONLY = ("tests", "evals", ".git", ".pytest_cache")
 SKILL_DIR = REPO_ROOT / "skills" / "data-visualisation"
 SKILL_MD = SKILL_DIR / "SKILL.md"
-STACKS = ("python-matplotlib",)
+STACKS = ("python-matplotlib", "r-ggplot2")
 STYLES = ("nature", "visualisation")
 # Library and file-format names that belong in a stack reference, never in SKILL.md.
 STACK_SPECIFIC_TERMS = (

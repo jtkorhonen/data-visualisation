@@ -47,8 +47,12 @@ def write_svg(
     font_sizes=(9,),
     stroke_widths=(0.5,),
     dated: bool = False,
+    quote: str = '"',
 ) -> None:
-    """Write a minimal Matplotlib-like SVG with the given text and stroke sizes."""
+    """Write a minimal SVG with the given text and stroke sizes.
+
+    Matplotlib quotes attributes with double quotes and svglite with single quotes.
+    """
     width_pt = width_mm / MM_PER_INCH * 72
     height_pt = height_mm / MM_PER_INCH * 72
     texts = "".join(
@@ -62,7 +66,7 @@ def write_svg(
     metadata = "<metadata><dc:date>2026-10-27T00:00:00</dc:date></metadata>" if dated else ""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        f'<svg width="{width_pt:.6f}pt" height="{height_pt:.6f}pt" '
+        f"<svg width={quote}{width_pt:.6f}pt{quote} height={quote}{height_pt:.6f}pt{quote} "
         f'xmlns="http://www.w3.org/2000/svg">{metadata}{texts}{strokes}</svg>'
     )
 
@@ -85,6 +89,77 @@ def project(tmp_path: Path) -> Path:
     write_png(root / "outputs" / "figures" / "line.png", 120, 80, 450)
     write_svg(root / "outputs" / "figures" / "line.svg", 120, 80)
     return root
+
+
+@pytest.fixture
+def r_project(tmp_path: Path) -> Path:
+    """A minimal valid R project with one 120 x 80 mm figure pair at 450 dpi, as svglite writes it."""
+    root = tmp_path / "r project with spaces"
+    for folder in ("inputs", "outputs", "scripts", "styles", "renv"):
+        (root / folder).mkdir(parents=True)
+    (root / "styles" / "visualisation.R").write_text("figure_theme <- ggplot2::theme_void()\n")
+    (root / "Snakefile").write_text('configfile: "config.yaml"\nSTYLE = config["style"]\n')
+    (root / "config.yaml").write_text("style: styles/visualisation.R\npng_dpi: 450\n")
+    (root / "README.md").write_text("# Project\n")
+    (root / "pyproject.toml").write_text("[project]\nname = 'p'\n")
+    (root / "uv.lock").write_text("version = 1\n")
+    (root / "requirements.txt").write_text("snakemake==9.27.1\n")
+    (root / "DESCRIPTION").write_text("Type: project\nImports: ggplot2\n")
+    (root / "renv.lock").write_text("{}\n")
+    (root / ".Rprofile").write_text('source("renv/activate.R")\n')
+    (root / "renv" / "activate.R").write_text("local({})\n")
+    (root / "scripts" / "plot.R").write_text("library(ggplot2)\nlibrary(dplyr)\n")
+    write_png(root / "outputs" / "figures" / "line.png", 120, 80, 450)
+    write_svg(root / "outputs" / "figures" / "line.svg", 120, 80, quote="'")
+    return root
+
+
+def test_valid_r_project_has_no_problems(r_project: Path) -> None:
+    assert check_project.check(r_project, size_mm=(120, 80)) == []
+
+
+@pytest.mark.parametrize("name", ["renv.lock", "DESCRIPTION", ".Rprofile", "renv/activate.R"])
+def test_missing_r_layout_items_are_reported(r_project: Path, name: str) -> None:
+    (r_project / name).unlink()
+    problems = check_project.check(r_project, size_mm=(120, 80))
+    assert any(name in p for p in problems)
+
+
+def test_python_project_does_not_need_r_files(project: Path) -> None:
+    assert not any("renv" in p for p in check_project.check(project, size_mm=(120, 80)))
+
+
+@pytest.mark.parametrize(
+    "source",
+    ["library(plyr)\n", "require(plyr)\n", "library('plyr')\n", "x <- plyr::ddply(d, 'g')\n"],
+)
+def test_plyr_in_r_scripts_is_reported(r_project: Path, source: str) -> None:
+    (r_project / "scripts" / "bad.R").write_text(source)
+    problems = check_project.check(r_project, size_mm=(120, 80))
+    assert any("bad.R" in p and "plyr" in p for p in problems)
+
+
+def test_plyr_in_r_comment_is_ignored(r_project: Path) -> None:
+    (r_project / "scripts" / "fine.R").write_text("# library(plyr) clashes with dplyr\n")
+    assert check_project.check(r_project, size_mm=(120, 80)) == []
+
+
+def test_r_style_not_referenced_is_reported(r_project: Path) -> None:
+    (r_project / "styles" / "nature.R").write_text("figure_theme <- ggplot2::theme_void()\n")
+    problems = check_project.check(r_project, size_mm=(120, 80))
+    assert any("nature.R" in p for p in problems)
+
+
+def test_wrong_svglite_size_is_reported(r_project: Path) -> None:
+    write_svg(r_project / "outputs" / "figures" / "line.svg", 100, 80, quote="'")
+    problems = check_project.check(r_project, size_mm=(120, 80))
+    assert any("line.svg" in p and "mm" in p for p in problems)
+
+
+def test_stray_r_default_device_file_is_reported(r_project: Path) -> None:
+    (r_project / "Rplots.pdf").write_bytes(b"%PDF-1.4\n")
+    problems = check_project.check(r_project, size_mm=(120, 80))
+    assert any("Rplots.pdf" in p for p in problems)
 
 
 def test_valid_project_has_no_problems(project: Path) -> None:

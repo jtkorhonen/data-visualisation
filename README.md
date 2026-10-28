@@ -3,9 +3,15 @@
 A data visualisation skill usable with many AI agents (Claude Code, Codex and others that
 read `SKILL.md`).
 
-It creates a reproducible Python 3.14+ project managed with uv (with a plain `venv`
-fallback) and built with Snakemake: Polars for data, Matplotlib/Seaborn for figures,
-and 450-dpi PNG plus SVG outputs (600 dpi on request).
+It creates a reproducible project built with Snakemake, in one of two stacks:
+
+- **Python 3.14+** managed with uv (with a plain `venv` fallback): Polars for data,
+  Matplotlib/Seaborn for figures.
+- **R 4.5+** managed with renv: readr/dplyr/tidyr for data, ggplot2 for figures
+  (Snakemake itself still comes from uv).
+
+Both produce the same look from one style spec (based on `ggthemes::theme_clean()`), fully
+defined inside each project, and 450-dpi PNG plus SVG outputs (600 dpi on request).
 
 ## Install
 
@@ -39,12 +45,12 @@ Use another `-a` / `--agent` value (for example `codex`) for other agents, or le
 | `skills/data-visualisation/assets/<stack>/styles/` | Each stack's implementation of every style spec |
 | `skills/data-visualisation/scripts/check_project.py` | Standard-library checker for a generated project |
 | `evals/` | Sample prompts and data for trying the skill (not installed) |
-| `tests/` | Layout, checker, and end-to-end template tests (not installed) |
+| `tests/` | Layout, checker, and end-to-end template tests for both stacks (not installed) |
 
 ## Development
 
-Run the tests (the end-to-end tests need uv and network access or a warm uv cache, and
-take a few minutes):
+Run the tests (the end-to-end tests need uv, R and network access or warm uv and renv
+caches, and take a few minutes; the R ones are skipped when R is not installed):
 
 ```bash
 uv run --no-project --python 3.14 --with pytest pytest tests

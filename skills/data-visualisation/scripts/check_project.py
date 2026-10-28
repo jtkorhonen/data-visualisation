@@ -28,10 +28,28 @@ REQUIRED_PATHS = (
     "requirements.txt",
 )
 FORBIDDEN_MODULES = ("pandas", "matplotlib.pyplot")
+# R projects keep their packages in DESCRIPTION, locked by renv and activated by .Rprofile.
+REQUIRED_R_PATHS = ("DESCRIPTION", "renv.lock", ".Rprofile", "renv/activate.R")
+# plyr is retired and masks dplyr functions when both are loaded.
+FORBIDDEN_R_PACKAGES = ("plyr",)
+STYLE_PATTERNS = ("*.mplstyle", "*.R")
+# Written by R's default device when a plot is laid out before an output device is open.
+STRAY_FILES = ("Rplots.pdf",)
+
+
+def is_r_project(root: Path) -> bool:
+    return any((root / "scripts").rglob("*.R"))
 
 
 def check_layout(root: Path) -> list[str]:
-    return [f"missing required path: {name}" for name in REQUIRED_PATHS if not (root / name).exists()]
+    required = REQUIRED_PATHS + (REQUIRED_R_PATHS if is_r_project(root) else ())
+    problems = [f"missing required path: {name}" for name in required if not (root / name).exists()]
+    problems += [
+        f"{name}: stray file from R's default graphics device; open the output device first"
+        for name in STRAY_FILES
+        if (root / name).exists()
+    ]
+    return problems
 
 
 def _imported_modules(tree: ast.AST) -> set[str]:
@@ -52,6 +70,22 @@ def check_imports(root: Path) -> list[str]:
         for forbidden in FORBIDDEN_MODULES:
             if any(m == forbidden or m.startswith(forbidden + ".") for m in modules):
                 problems.append(f"{script.relative_to(root)}: imports {forbidden}")
+    return problems
+
+
+def _r_code_without_comments(text: str) -> str:
+    """Drop # comments; good enough for package references, which never sit inside strings."""
+    return "\n".join(line.split("#", 1)[0] for line in text.splitlines())
+
+
+def check_r_packages(root: Path) -> list[str]:
+    problems = []
+    for script in sorted((root / "scripts").rglob("*.R")):
+        code = _r_code_without_comments(script.read_text())
+        for package in FORBIDDEN_R_PACKAGES:
+            loaded = re.search(rf"\b(library|require)\(\s*['\"]?{package}['\"]?\s*\)", code)
+            if loaded or re.search(rf"\b{package}::", code):
+                problems.append(f"{script.relative_to(root)}: uses {package}")
     return problems
 
 
@@ -104,7 +138,7 @@ def check_svg(path: Path, root: Path, size_mm) -> list[str]:
     name = str(path.relative_to(root))
     text = path.read_text()
     problems = []
-    size = re.search(r'<svg[^>]*\swidth="([\d.]+)pt"[^>]*\sheight="([\d.]+)pt"', text)
+    size = re.search(r"""<svg[^>]*\swidth=["']([\d.]+)pt["'][^>]*\sheight=["']([\d.]+)pt["']""", text)
     if size is None:
         problems.append(f"{name}: no width/height in points")
     else:
@@ -140,9 +174,10 @@ def check_styles_declared(root: Path) -> list[str]:
     text = "".join(
         (root / name).read_text() for name in ("Snakefile", "config.yaml") if (root / name).exists()
     )
+    styles = sorted(path for pattern in STYLE_PATTERNS for path in (root / "styles").glob(pattern))
     return [
         f"{style.relative_to(root)}: not referenced in the Snakefile or config.yaml"
-        for style in sorted((root / "styles").glob("*.mplstyle"))
+        for style in styles
         if style.name not in text
     ]
 
@@ -178,6 +213,7 @@ def check(root: Path, size_mm, up_to_date: bool = False) -> list[str]:
     problems = check_layout(root)
     if (root / "scripts").is_dir():
         problems += check_imports(root)
+        problems += check_r_packages(root)
     if (root / "outputs").is_dir():
         problems += check_figures(root, size_mm)
     if (root / "styles").is_dir():

@@ -1,8 +1,8 @@
 ---
 name: data-visualisation
-description: Create or maintain self-contained, reproducible Python data visualisation projects (charts, plots, graphs, scientific figures) driven by Snakemake and uv, with inputs/ for source data, scripts/ for Polars-based analysis and Matplotlib/Seaborn plotting, and outputs/ for derived data and 450-dpi PNG plus SVG figures. Use when the user wants to plot, chart or graph data from files (e.g. CSV) as a reusable, reproducible project, or wants publication or journal figures; do not use for inline-only exploratory visuals.
+description: Create or maintain self-contained, reproducible data visualisation projects (charts, plots, graphs, scientific figures) in Python (Polars, Matplotlib/Seaborn, uv) or R (readr/dplyr/tidyr, ggplot2, renv), driven by Snakemake, with inputs/ for source data, scripts/ for analysis and plotting, styles/ for a fully defined figure style, and outputs/ for derived data and 450-dpi PNG plus SVG figures. Use when the user wants to plot, chart or graph data from files (e.g. CSV) as a reusable, reproducible project, or wants publication or journal figures; do not use for inline-only exploratory visuals.
 license: Unlicense
-compatibility: Requires Python 3.14+, uv (or the standard-library venv as a fallback) and network access to install Python packages.
+compatibility: Requires Python 3.14+ with uv (or the standard-library venv as a fallback) for Snakemake and the Python stack, R 4.5+ for the R stack, and network access to install packages.
 metadata:
   short-description: Reproducible Snakemake visualisation projects
 ---
@@ -26,6 +26,7 @@ ones the project uses.
    | Stack | Reference |
    | --- | --- |
    | Python | [references/stacks/python-matplotlib.md](references/stacks/python-matplotlib.md) |
+   | R | [references/stacks/r-ggplot2.md](references/stacks/r-ggplot2.md) |
 
 2. **Style.** Use [references/styles/visualisation.md](references/styles/visualisation.md)
    by default, or [references/styles/nature.md](references/styles/nature.md) for Nature or

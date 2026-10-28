@@ -1,8 +1,11 @@
-# Default style for the Visualisation skill.
-# Arial is preferred for Nature-style scientific figure lettering; Helvetica and
-# DejaVu Sans provide fallbacks on systems where Arial is unavailable.
+# Default style for the Visualisation skill: Matplotlib implementation of
+# references/styles/visualisation.md, which follows ggthemes::theme_clean().
+# Values are the points that theme_clean() actually renders at base size 12 (ggplot2
+# line widths are converted from its own units), so R and Python figures match.
 # All text stays within the skill's 5-14 pt range and all lines within 0.25-1.5 pt.
 # PNG resolution is not set here: the project's config.yaml (png_dpi) owns it.
+# Arial is preferred for Nature-style scientific figure lettering; Helvetica and
+# DejaVu Sans provide fallbacks on systems where Arial is unavailable.
 
 font.family: sans-serif
 font.sans-serif: Arial, Helvetica, DejaVu Sans
@@ -11,37 +14,72 @@ axes.prop_cycle: cycler('color', ['black', 'black', 'black', 'black']) + cycler(
 # Use a complete sans-serif math font for chemical subscripts and other notation.
 mathtext.fontset: dejavusans
 font.weight: normal
-axes.titleweight: normal
 figure.titleweight: normal
 yaxis.labellocation: top
-axes.titlepad: 10
-font.size: 9
-axes.titlesize: 12
+
+# Text: bold left-aligned title, 10 pt axis titles, 9 pt tick labels, 11 pt legend.
+font.size: 12
+axes.titlesize: 14
+axes.titleweight: bold
+axes.titlelocation: left
+axes.titlepad: 6
 axes.labelsize: 10
 xtick.labelsize: 9
 ytick.labelsize: 9
-legend.fontsize: 9
-legend.frameon: False
+legend.fontsize: 11
+legend.title_fontsize: 12
 figure.titlesize: 14
-lines.linewidth: 0.75
-lines.markersize: 3
-lines.markeredgewidth: 0.5
-patch.linewidth: 0.25
+
+# Axis lines on the left and bottom only; dotted grey horizontal major grid lines.
+axes.linewidth: 1.07
+axes.edgecolor: black
+axes.spines.top: False
+axes.spines.right: False
+axes.grid: True
+axes.grid.axis: y
+axes.grid.which: major
+axes.axisbelow: True
+grid.color: "#BEBEBE"
+grid.linewidth: 1.16
+# ggplot2 "dotted": 1 on, 3 off in R line-width units, i.e. 1.55 pt on, 4.66 pt off.
+grid.linestyle: (0, (1.34, 4.02))
+
+xtick.direction: out
+ytick.direction: out
+xtick.major.size: 3
+ytick.major.size: 3
+xtick.major.width: 1.16
+ytick.major.width: 1.16
+xtick.major.pad: 2.2
+ytick.major.pad: 2.2
+xtick.minor.visible: False
+ytick.minor.visible: False
+
+# Marks: 1.16 pt lines and rectangle outlines (boxes, bars, legend box, figure frame).
+lines.linewidth: 1.16
+lines.markersize: 4.26
+lines.markeredgewidth: 0.77
+patch.linewidth: 1.16
 hatch.linewidth: 0.25
-axes.linewidth: 0.5
-xtick.major.width: 0.5
-ytick.major.width: 0.5
-xtick.minor.width: 0.5
-ytick.minor.width: 0.5
-xtick.major.size: 3.5
-ytick.major.size: 3.5
-xtick.minor.size: 2
-ytick.minor.size: 2
+
+# Framed legend; a square black box, as in theme_clean.
+legend.frameon: True
+legend.fancybox: False
+legend.framealpha: 1
+legend.edgecolor: black
+legend.linewidth: 1.16
+
+# White background inside a black frame; 6 pt margin inside the frame.
+figure.facecolor: white
+figure.edgecolor: black
+figure.constrained_layout.w_pad: 0.0833
+figure.constrained_layout.h_pad: 0.0833
+axes.facecolor: white
+savefig.facecolor: white
+savefig.edgecolor: black
+
 svg.fonttype: none
 # A fixed salt keeps SVG element ids identical between runs.
 svg.hashsalt: visualisation
 pdf.fonttype: 42
 ps.fonttype: 42
-figure.facecolor: white
-axes.facecolor: white
-savefig.facecolor: white

@@ -33,10 +33,15 @@ def style_context(style_path: Path):
 
 
 def new_figure(width_mm: float, height_mm: float) -> tuple[Figure, Axes]:
-    """One axes on a figure of exact physical size, without pyplot."""
+    """One axes on a figure of exact physical size, without pyplot.
+
+    The figure frame is drawn in the style's figure.edgecolor at its patch.linewidth;
+    Matplotlib has no style setting for the frame width itself.
+    """
     figure = Figure(
         figsize=(width_mm / MM_PER_INCH, height_mm / MM_PER_INCH),
         layout="constrained",
+        linewidth=matplotlib.rcParams["patch.linewidth"],
     )
     return figure, figure.add_subplot()
 

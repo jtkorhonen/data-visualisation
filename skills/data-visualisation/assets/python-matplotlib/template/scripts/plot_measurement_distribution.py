@@ -27,9 +27,9 @@ def main() -> None:
             ax=axes,
             color="white",
             linecolor="black",
-            linewidth=0.5,
             fliersize=2,
             width=0.5,
+            showcaps=False,
         )
         axes.set_xlabel("group")
         set_horizontal_ylabel(axes, "value (a.u.)")

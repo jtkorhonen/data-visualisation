@@ -68,6 +68,15 @@ def test_forced_rebuild_is_byte_identical(built_project: Path) -> None:
     assert {path: path.read_bytes() for path in figures} == before
 
 
+def test_default_style_renders_theme_clean_features(built_project: Path) -> None:
+    """Figure frame, dotted grey grid lines and the 1.16 pt line width of ggthemes::theme_clean()."""
+    svg = (built_project / "outputs" / "figures" / "measurement_by_day.svg").read_text()
+    assert "stroke-dasharray: 1.5544,4.6632" in svg.replace("\n", "")
+    assert "stroke: #bebebe" in svg
+    frame = svg.split('<g id="patch_1">')[1].split("</g>")[0]
+    assert "stroke: #000000" in frame and "stroke-width: 1.16" in frame
+
+
 def test_editing_a_plot_script_reruns_only_its_rule(built_project: Path) -> None:
     script = built_project / "scripts" / "plot_measurement_by_day.py"
     script.write_text(script.read_text() + "\n")

@@ -108,9 +108,9 @@ instead of silently using an older or different interpreter.
 Unless the user specifies otherwise:
 
 - physical size: 120 × 80 mm (`figure_width_mm` / `figure_height_mm` in `config.yaml`);
-- typography, line widths, ticks and layout as in the chosen style spec: sans-serif,
-  regular weight, 12 pt titles, 10 pt axis labels and 9 pt ticks, legends, and
-  annotations in the default style; 5–8 pt in the Nature style;
+- typography, line widths, ticks, grid and frame as in the chosen style spec: the
+  default style follows `ggthemes::theme_clean()` (bold 14 pt title, 10 pt axis
+  titles, 9 pt ticks, dotted horizontal grid, framed figure); the Nature style uses 5–8 pt;
 - text between 5 and 14 pt and lines between 0.25 pt (fine structure) and 1.5 pt
   (thickest plotted line, border, or error bar) in every style;
 - PNG at 450 dpi, or 600 dpi when asked (`png_dpi` in `config.yaml`, or

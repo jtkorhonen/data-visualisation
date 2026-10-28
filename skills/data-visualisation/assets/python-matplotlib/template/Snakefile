@@ -2,6 +2,7 @@
 # Rules call scripts through a quoted interpreter path so project paths may contain spaces.
 
 import sys
+from pathlib import Path
 
 configfile: "config.yaml"
 
@@ -11,6 +12,8 @@ if config["png_dpi"] not in ALLOWED_PNG_DPI:
 
 PYTHON = sys.executable
 STYLE = config["style"]
+# Settings the style sheet cannot express; same name, .yaml suffix.
+STYLE_SIDECAR = str(Path(STYLE).with_suffix(".yaml"))
 FIGURE_HELPERS = "scripts/figure_style.py"
 DATA_LOADER = "scripts/summarise.py"
 FIGURE_ARGS = (
@@ -45,6 +48,7 @@ rule plot_measurement_by_day:
         helpers=FIGURE_HELPERS,
         loader=DATA_LOADER,
         style=STYLE,
+        style_sidecar=STYLE_SIDECAR,
     output:
         png="outputs/figures/measurement_by_day.png",
         svg="outputs/figures/measurement_by_day.svg",
@@ -64,6 +68,7 @@ rule plot_measurement_distribution:
         helpers=FIGURE_HELPERS,
         loader=DATA_LOADER,
         style=STYLE,
+        style_sidecar=STYLE_SIDECAR,
     output:
         png="outputs/figures/measurement_distribution.png",
         svg="outputs/figures/measurement_distribution.svg",

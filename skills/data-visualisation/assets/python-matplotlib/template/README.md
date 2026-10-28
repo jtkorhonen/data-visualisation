@@ -52,9 +52,12 @@ All figures are 120 × 80 mm. Settings for the build live in `config.yaml`.
 
 ## Style
 
-Global visual formatting lives in `styles/visualisation.mplstyle`: fonts and text sizes,
-line and tick widths, the black line-style cycle, and SVG/PDF font handling. Figure
-size and PNG resolution come from `config.yaml`. Changing either file rebuilds the figures.
+The style is fully defined inside this project, so a library upgrade cannot change it.
+`styles/visualisation.mplstyle` sets every Matplotlib setting that affects a figure: fonts
+and text sizes, line and tick widths, grid, frame, the black line-style cycle, and SVG/PDF
+font handling. `styles/visualisation.yaml` holds what a style sheet cannot express: the
+frame width and the y-label and title placement. Figure size and PNG resolution come from
+`config.yaml`. Changing any of these files rebuilds the figures.
 
 Color: <none — figures are black, groups are distinguished by line style and direct labels.
 If color is used, state what it encodes, why a non-color encoding was not enough, and the palette.>

@@ -12,6 +12,15 @@ SKILL_ROOT = Path(__file__).resolve().parents[1] / "skills" / "data-visualisatio
 CHECKER = SKILL_ROOT / "scripts" / "check_project.py"
 STACK_ASSETS = SKILL_ROOT / "assets" / "python-matplotlib"
 FIGURES = ("measurement_by_day", "measurement_distribution")
+STYLE_SUFFIXES = (".mplstyle", ".yaml")
+# Settings that do not change a saved figure: interactive use, backends and file dialogs.
+NON_APPEARANCE_PREFIXES = (
+    "_internal.", "animation.", "backend", "docstring.", "figure.hooks", "figure.max_open_warning",
+    "figure.raise_window", "interactive", "keymap.", "macosx.", "savefig.directory", "tk.",
+    "toolbar", "webagg.",
+    # Matplotlib refuses these two in style sheets; dates are given explicitly where used.
+    "date.epoch", "timezone",
+)
 
 pytestmark = pytest.mark.skipif(shutil.which("uv") is None, reason="uv is not installed")
 
@@ -22,11 +31,12 @@ def run(args: list[str], cwd: Path) -> subprocess.CompletedProcess:
     return result
 
 
-def scaffold(destination: Path, style: str = "visualisation.mplstyle") -> Path:
-    """Copy the template and one bundled style, as SKILL.md instructs."""
+def scaffold(destination: Path, style: str = "visualisation") -> Path:
+    """Copy the template and one bundled style (style sheet and its sidecar), as the stack reference instructs."""
     shutil.copytree(STACK_ASSETS / "template", destination)
     (destination / "styles").mkdir(exist_ok=True)
-    shutil.copy(STACK_ASSETS / "styles" / style, destination / "styles" / style)
+    for suffix in STYLE_SUFFIXES:
+        shutil.copy(STACK_ASSETS / "styles" / f"{style}{suffix}", destination / "styles")
     run(["uv", "sync", "--quiet"], destination)
     run(
         ["uv", "export", "--quiet", "--format", "requirements.txt", "--no-emit-project",
@@ -68,6 +78,30 @@ def test_forced_rebuild_is_byte_identical(built_project: Path) -> None:
     assert {path: path.read_bytes() for path in figures} == before
 
 
+@pytest.mark.parametrize("style", ["visualisation", "nature"])
+def test_style_sheet_pins_every_appearance_setting(built_project: Path, style: str) -> None:
+    """A Matplotlib upgrade with new defaults must not be able to change the figures."""
+    sheet = STACK_ASSETS / "styles" / f"{style}.mplstyle"
+    code = (
+        "import sys, matplotlib\n"
+        "pinned = set(matplotlib.rc_params_from_file(sys.argv[1], use_default_template=False))\n"
+        "prefixes = tuple(sys.argv[2:])\n"
+        "missing = sorted(k for k in matplotlib.rcParams if k not in pinned and not k.startswith(prefixes))\n"
+        "print('\\n'.join(missing))\n"
+    )
+    result = run(["uv", "run", "python", "-c", code, str(sheet), *NON_APPEARANCE_PREFIXES], built_project)
+    assert result.stdout.strip() == "", f"{sheet.name} leaves these to Matplotlib defaults:\n{result.stdout}"
+
+
+def test_editing_the_style_sidecar_reruns_every_plot(built_project: Path) -> None:
+    sidecar = built_project / "styles" / "visualisation.yaml"
+    sidecar.write_text(sidecar.read_text() + "\n")
+    result = run(["uv", "run", "snakemake", "--cores", "1", "--dry-run"], built_project)
+    for name in FIGURES:
+        assert f"plot_{name}" in result.stdout
+    run(["uv", "run", "snakemake", "--cores", "1", "--quiet"], built_project)
+
+
 def test_default_style_renders_theme_clean_features(built_project: Path) -> None:
     """Figure frame, dotted grey grid lines and the 1.16 pt line width of ggthemes::theme_clean()."""
     svg = (built_project / "outputs" / "figures" / "measurement_by_day.svg").read_text()
@@ -107,7 +141,7 @@ def test_unsupported_dpi_is_rejected(tmp_path: Path) -> None:
 
 
 def test_nature_style_build(tmp_path: Path) -> None:
-    root = scaffold(tmp_path / "nature", style="nature.mplstyle")
+    root = scaffold(tmp_path / "nature", style="nature")
     config = root / "config.yaml"
     config.write_text(
         config.read_text()

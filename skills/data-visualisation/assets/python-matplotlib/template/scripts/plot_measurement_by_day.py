@@ -18,8 +18,8 @@ def main() -> None:
     args = figure_arguments("Plot measurement by day").parse_args()
     data = load_measurements(args.data).sort("group", "day")
 
-    with style_context(args.style):
-        figure, axes = new_figure(args.width_mm, args.height_mm)
+    with style_context(args.style) as style:
+        figure, axes = new_figure(args.width_mm, args.height_mm, style)
         for (group,), rows in data.group_by("group", maintain_order=True):
             days = rows["day"].to_numpy()
             values = rows["value"].fill_null(float("nan")).to_numpy()
@@ -34,8 +34,8 @@ def main() -> None:
                 color=line.get_color(),
             )
         axes.set_xlabel("day")
-        set_horizontal_ylabel(axes, "value (a.u.)")
-        set_title_above_ylabel(axes, "Measurement by day")
+        set_horizontal_ylabel(axes, "value (a.u.)", style)
+        set_title_above_ylabel(axes, "Measurement by day", style)
         save_figure(figure, args.png, args.svg, args.dpi)
 
 

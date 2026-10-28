@@ -74,6 +74,7 @@ def project(tmp_path: Path) -> Path:
     for folder in ("inputs", "outputs", "scripts", "styles"):
         (root / folder).mkdir(parents=True)
     (root / "styles" / "visualisation.mplstyle").write_text("font.size: 9\n")
+    (root / "styles" / "visualisation.yaml").write_text("figure_frame_linewidth: 1.16\n")
     (root / "Snakefile").write_text('STYLE = "styles/visualisation.mplstyle"\n')
     (root / "config.yaml").write_text("png_dpi: 450\n")
     (root / "README.md").write_text("# Project\n")
@@ -182,6 +183,12 @@ def test_style_not_in_snakefile_is_reported(project: Path) -> None:
     (project / "styles" / "nature.mplstyle").write_text("font.size: 7\n")
     problems = check_project.check(project, size_mm=(120, 80))
     assert any("nature.mplstyle" in p for p in problems)
+
+
+def test_style_sheet_without_sidecar_is_reported(project: Path) -> None:
+    (project / "styles" / "visualisation.yaml").unlink()
+    problems = check_project.check(project, size_mm=(120, 80))
+    assert any("visualisation.yaml" in p for p in problems)
 
 
 def test_style_named_in_config_counts_as_declared(project: Path) -> None:

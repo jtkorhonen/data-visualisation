@@ -9,11 +9,21 @@ everything there still applies.
 | Asset | Copy to |
 | --- | --- |
 | [`assets/python-matplotlib/template/`](../../assets/python-matplotlib/template/) | the project folder |
-| [`assets/python-matplotlib/styles/visualisation.mplstyle`](../../assets/python-matplotlib/styles/visualisation.mplstyle) | `styles/` (default style) |
-| [`assets/python-matplotlib/styles/nature.mplstyle`](../../assets/python-matplotlib/styles/nature.mplstyle) | `styles/` (Nature style, instead of the default) |
+| [`assets/python-matplotlib/styles/visualisation.mplstyle`](../../assets/python-matplotlib/styles/visualisation.mplstyle) and [`.yaml`](../../assets/python-matplotlib/styles/visualisation.yaml) | `styles/` (default style) |
+| [`assets/python-matplotlib/styles/nature.mplstyle`](../../assets/python-matplotlib/styles/nature.mplstyle) and [`.yaml`](../../assets/python-matplotlib/styles/nature.yaml) | `styles/` (Nature style, instead of the default) |
 
-The style sheets implement the specs in [`../styles/`](../styles/). Select the style with
-`style: styles/<name>.mplstyle` in `config.yaml`.
+Each style is two files that implement one spec in [`../styles/`](../styles/), and both
+are copied into the project so the style is fully defined there:
+
+- `<name>.mplstyle` sets **every** rcParam that can change a saved figure. The top
+  section holds the values chosen for the style; the "Pinned Matplotlib defaults"
+  section writes out everything else, so a Matplotlib upgrade cannot change the output.
+  Never shorten it to only the changed values.
+- `<name>.yaml` (the sidecar) holds the few settings a style sheet cannot express: the
+  figure-frame width, the y-label rotation, alignment and padding, and the title padding.
+
+Select the style with `style: styles/<name>.mplstyle` in `config.yaml`; the Snakefile
+finds the sidecar by its `.yaml` suffix and declares both as inputs.
 
 ## Project files
 
@@ -24,12 +34,13 @@ project/
 ├── scripts/
 │   └── figure_style.py        # shared style, sizing, label and export helpers
 ├── styles/
-│   └── visualisation.mplstyle # Matplotlib style sheet
+│   ├── visualisation.mplstyle # Matplotlib style sheet, every setting pinned
+│   └── visualisation.yaml     # settings the style sheet cannot express
 └── .venv/                     # one uv environment for Snakemake and the scripts
 ```
 
 `pyproject.toml` lists Snakemake and the analysis libraries together (Matplotlib, NumPy,
-Polars, Seaborn); `uv.lock` and `requirements.txt` lock all of them.
+Polars, PyYAML, Seaborn); `uv.lock` and `requirements.txt` lock all of them.
 
 ## Environment
 
@@ -78,11 +89,11 @@ from figure_style import (
 )
 
 args = figure_arguments("Plot measurement by day").parse_args()
-with style_context(args.style):                  # Matplotlib defaults + project style
-    figure, axes = new_figure(args.width_mm, args.height_mm)
+with style_context(args.style) as style:         # style sheet; yields sidecar settings
+    figure, axes = new_figure(args.width_mm, args.height_mm, style)
     ...                                            # plot; pass ax=axes to Seaborn
-    set_horizontal_ylabel(axes, "quantity (unit)")
-    set_title_above_ylabel(axes, "Chart title")
+    set_horizontal_ylabel(axes, "quantity (unit)", style)
+    set_title_above_ylabel(axes, "Chart title", style)
     save_figure(figure, args.png, args.svg, args.dpi)
 ```
 
@@ -146,14 +157,16 @@ rule plot_measurement_by_day:
 
 - Requirements: Python 3.14+ and uv, with `venv` as the fallback.
 - Setup with uv and with the `requirements.txt` fallback.
-- Style: `styles/<name>.mplstyle` controls fonts and text sizes, line and tick widths,
-  the black line-style cycle, and SVG/PDF font handling.
+- Style: `styles/<name>.mplstyle` fully defines fonts and text sizes, line and tick
+  widths, grid, frame, the black line-style cycle, and SVG/PDF font handling;
+  `styles/<name>.yaml` holds the frame width and y-label and title placement.
 - Updating dependencies: `uv lock --upgrade`, then re-export `requirements.txt`.
 
 ## Checks
 
 The checker additionally fails on any `pandas` or `matplotlib.pyplot` import under
-`scripts/`, and on any `styles/*.mplstyle` not referenced by the Snakefile or `config.yaml`.
+`scripts/`, on any `styles/*.mplstyle` not referenced by the Snakefile or `config.yaml`,
+and on any style sheet without its `.yaml` sidecar.
 
 ## Skill routing
 

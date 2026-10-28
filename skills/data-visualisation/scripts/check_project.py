@@ -147,6 +147,15 @@ def check_styles_declared(root: Path) -> list[str]:
     ]
 
 
+def check_style_sidecars(root: Path) -> list[str]:
+    """Each style sheet needs its YAML sidecar for the settings a style sheet cannot express."""
+    return [
+        f"{style.relative_to(root)}: missing sidecar {style.with_suffix('.yaml').relative_to(root)}"
+        for style in sorted((root / "styles").glob("*.mplstyle"))
+        if not style.with_suffix(".yaml").exists()
+    ]
+
+
 def check_up_to_date(root: Path) -> list[str]:
     """Run a Snakemake dry run with the interpreter's own Snakemake and expect no jobs."""
     snakemake = Path(sys.executable).parent / "snakemake"
@@ -173,6 +182,7 @@ def check(root: Path, size_mm, up_to_date: bool = False) -> list[str]:
         problems += check_figures(root, size_mm)
     if (root / "styles").is_dir():
         problems += check_styles_declared(root)
+        problems += check_style_sidecars(root)
     if up_to_date:
         problems += check_up_to_date(root)
     return problems

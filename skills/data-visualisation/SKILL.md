@@ -120,7 +120,9 @@ Unless the user specifies otherwise:
 - y-axis labels: horizontal and above the top-left of the axis.
 
 Store global visual formatting in the style implementation in `styles/`, not inside
-plotting scripts. Keep data semantics, plot-specific annotations, and scientifically
+plotting scripts. The style files must define the style **fully**: every setting that
+can change a figure is written out, never left to library defaults, so the project
+reproduces the same figures after a library upgrade. Keep data semantics, plot-specific annotations, and scientifically
 meaningful encodings in the script; keep reusable typography, line widths, the
 color/line-style cycle, and font-embedding settings in the style. Build settings that
 may change per run (style path, dpi, size) live in `config.yaml` and reach scripts as

@@ -4,6 +4,8 @@ The default look for every chart, whatever the stack. It starts from
 `ggthemes::theme_clean()` at base size 12 and adds the skill's customisations on top.
 Each stack implements it in `assets/<stack>/styles/visualisation.*`; this file is the
 source of truth, and an implementation that disagrees with it is the one to fix.
+An implementation sets every value its library exposes, including those this file does
+not mention, so that library defaults never reach the figure.
 
 Values are what lands in the exported figure at final printed size, in points
 (1 pt = 1/72 inch). ggplot2 sizes lines in its own units: multiply a `linewidth` by

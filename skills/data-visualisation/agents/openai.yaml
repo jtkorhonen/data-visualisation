@@ -1,3 +1,5 @@
+# Codex metadata for this skill: display name, short description and default prompt.
+# Other agents ignore this file; they read the frontmatter of SKILL.md.
 interface:
   display_name: "Visualisation"
   short_description: "Build reproducible figures using Python or R and Snakemake"

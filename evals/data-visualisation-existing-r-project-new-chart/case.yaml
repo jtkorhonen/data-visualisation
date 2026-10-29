@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: data-visualisation-existing-r-project-new-chart
+expected_outcome: |
+  The agent recognises measurements-project as an R-stack project (scripts are .R, renv.lock present) and stays in R: a new plot script using figure_style.R helpers, a new Snakemake rule with its outputs added to rule all, the existing charts untouched, README updated, and check_project.py passing with --up-to-date.
+context:
+  scaffold_script: place-files.sh

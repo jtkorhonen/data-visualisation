@@ -103,6 +103,24 @@ def test_y_title_is_horizontal_above_the_tick_labels(built_project: Path, name: 
     assert chart_title_y < title_y, "chart title must sit above the y title"
 
 
+def test_figure_has_no_frame(built_project: Path) -> None:
+    """The background rectangle covering the whole figure has no outline."""
+    svg = (built_project / "outputs" / "figures" / "measurement_by_day.svg").read_text()
+    width = re.search(r"<svg[^>]*\swidth='([\d.]+)pt'", svg).group(1)
+    backgrounds = re.findall(rf"<rect[^>]*width='{re.escape(width)}'[^>]*/>", svg)
+    assert backgrounds, "no full-figure background rectangle"
+    for rect in backgrounds:
+        assert "stroke-width" not in rect or "stroke: none" in rect, rect
+
+
+def test_in_figure_labels_match_tick_labels(built_project: Path) -> None:
+    """Direct labels inside the plot use the 9 pt tick label size."""
+    texts = svg_texts(built_project / "outputs" / "figures" / "measurement_by_day.svg")
+    for label in ("control", "treated"):
+        [(_, _, attributes)] = texts[label]
+        assert "font-size: 9.00px" in attributes, attributes
+
+
 def test_y_title_goes_above_facet_strips(built_project: Path) -> None:
     result = run_r(
         """

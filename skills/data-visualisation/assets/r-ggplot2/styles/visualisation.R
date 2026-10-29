@@ -42,10 +42,11 @@ figure_elements <- theme(
   title = element_text(family = font_family),
   point = element_point(colour = "black", shape = 19, fill = "white", size = 1.5 * 12 / 11, stroke = line_width),
   polygon = element_polygon(fill = "white", colour = "black", linewidth = line_width, linetype = 1, linejoin = "round"),
+  # In-figure text (geom_text, geom_label, annotate) at 9 pt, matching the tick labels.
   geom = element_geom(
     ink = "black", paper = "white", accent = "black",
     linewidth = line_width, borderwidth = line_width, linetype = 1L, bordertype = 1L,
-    family = font_family, fontsize = 12, pointsize = 1.5 * 12 / 11, pointshape = 19
+    family = font_family, fontsize = 9, pointsize = 1.5 * 12 / 11, pointshape = 19
   ),
   spacing = pt(half_line),
   margins = margin(half_line, half_line, half_line, half_line, unit = "bigpts"),
@@ -106,8 +107,8 @@ figure_elements <- theme(
   strip.switch.pad.grid = pt(half_line / 2),
   strip.switch.pad.wrap = pt(half_line / 2),
 
-  # Whole figure: 1.16 pt black frame; bold 14 pt title left-aligned with the panel.
-  plot.background = element_rect(colour = "black"),
+  # Whole figure: white, no frame; bold 14 pt title left-aligned with the panel.
+  plot.background = element_rect(fill = "white", colour = NA),
   plot.title = element_text(size = 14, face = "bold", hjust = 0, vjust = 1, margin = margin(b = half_line, unit = "bigpts")),
   plot.title.position = "panel",
   plot.subtitle = element_text(size = 13, hjust = 0, vjust = 1, margin = margin(b = half_line, unit = "bigpts")),

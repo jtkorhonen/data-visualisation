@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: data-visualisation-r-facets-by-station
+expected_outcome: |
+  An R-stack project from assets/r-ggplot2/template with one faceted chart (facet_wrap or facet_grid by station, shared y scale), built with Snakemake; the y-axis title is horizontal and sits above the facet strips; the May gap for north stays a gap; README and check_project.py pass.
+context:
+  scaffold_script: place-files.sh

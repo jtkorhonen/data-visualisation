@@ -97,6 +97,8 @@ instead of silently using an older or different interpreter.
 3. Select an honest encoding before styling. Preserve missing observations as gaps,
    distinguish zero from missing or censored values, state the estimator and interval,
    and avoid decorative 3-D or dual-axis encodings unless scientifically justified.
+   Draw bar charts horizontally, with the categories on the y axis and the values on the
+   x axis: category names then read without rotation, however long they are.
 4. Build figures with the stack's figure helpers. Keep plotting deterministic with
    explicit random seeds and declared bootstrap/aggregation settings.
 5. Export every chart as its own PNG and SVG pair.
@@ -111,7 +113,8 @@ Unless the user specifies otherwise:
 - physical size: 120 × 80 mm (`figure_width_mm` / `figure_height_mm` in `config.yaml`);
 - typography, line widths, ticks, grid and frame as in the chosen style spec: the
   default style follows `ggthemes::theme_clean()` (bold 14 pt title, 10 pt axis
-  titles, 9 pt ticks, dotted horizontal grid, framed figure); the Nature style uses 5–8 pt;
+  titles, 9 pt ticks and in-figure labels, dotted horizontal grid, no frame around the
+  figure); the Nature style uses 5–8 pt;
 - text between 5 and 14 pt and lines between 0.25 pt (fine structure) and 1.5 pt
   (thickest plotted line, border, or error bar) in every style;
 - PNG at 450 dpi, or 600 dpi when asked (`png_dpi` in `config.yaml`, or
@@ -229,7 +232,9 @@ The checker verifies the layout and lock files, the stack's code rules, a PNG an
 for every figure, PNG at 450 or 600 dpi, exact physical size, SVG text 5–14 pt, SVG
 strokes 0.25–1.5 pt, no embedded timestamps, every style file referenced by the
 workflow, and (with `--up-to-date`) that a second Snakemake run has nothing to do.
-Fix every `FAIL` line before handing off.
+Fix every `FAIL` line before handing off. If you also compare a forced rebuild with the
+previous files (for example by checksums), keep those scratch files inside the project,
+such as under `.snakemake/`, not in the system's temporary folder.
 
 Then confirm by hand what the checker cannot see:
 

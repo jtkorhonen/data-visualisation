@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: data-visualisation-3
+expected_outcome: |
+  Works in a path with spaces; one combined multi-panel figure with lowercase bold upright panel labels a and b, built at final size, PNG and SVG plus a declared vector production export, the multi-panel request recorded in the README, and check_project.py passing.
+context:
+  scaffold_script: place-files.sh

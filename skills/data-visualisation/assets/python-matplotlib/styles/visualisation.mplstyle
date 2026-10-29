@@ -1,5 +1,5 @@
 # Default style for the Visualisation skill: Matplotlib implementation of
-# references/styles/visualisation.md, which follows ggthemes::theme_clean().
+# references/styles/visualisation.md: ggthemes::theme_clean() plus the skill's customisations.
 # Values are the points that theme_clean() actually renders at base size 12 (ggplot2
 # line widths are converted from its own units), so R and Python figures match.
 # All text stays within the skill's 5-14 pt range and all lines within 0.25-1.5 pt.
@@ -18,7 +18,8 @@ figure.titleweight: normal
 yaxis.labellocation: top
 
 # Text: bold left-aligned title, 10 pt axis titles, 9 pt tick labels, 11 pt legend.
-font.size: 12
+# Base size, used by in-figure text such as direct labels: 9 pt, matching the tick labels.
+font.size: 9
 axes.titlesize: 14
 axes.titleweight: bold
 axes.titlelocation: left
@@ -55,7 +56,7 @@ ytick.major.pad: 2.2
 xtick.minor.visible: False
 ytick.minor.visible: False
 
-# Marks: 1.16 pt lines and rectangle outlines (boxes, bars, legend box, figure frame).
+# Marks: 1.16 pt lines and rectangle outlines (boxes, bars, legend box).
 lines.linewidth: 1.16
 lines.markersize: 4.26
 lines.markeredgewidth: 0.77
@@ -69,14 +70,14 @@ legend.framealpha: 1
 legend.edgecolor: black
 legend.linewidth: 1.16
 
-# White background inside a black frame; 6 pt margin inside the frame.
+# White background without a frame around the figure; 6 pt margin.
 figure.facecolor: white
-figure.edgecolor: black
+figure.edgecolor: white
 figure.constrained_layout.w_pad: 0.0833
 figure.constrained_layout.h_pad: 0.0833
 axes.facecolor: white
 savefig.facecolor: white
-savefig.edgecolor: black
+savefig.edgecolor: white
 
 svg.fonttype: none
 # A fixed salt keeps SVG element ids identical between runs.
@@ -187,7 +188,8 @@ figure.constrained_layout.wspace: 0.02
 figure.dpi: 100.0
 figure.figsize: 6.4, 4.8
 figure.frameon: True
-figure.labelsize: large
+# Absolute, so that the 9 pt base size does not shrink figure-level axis labels.
+figure.labelsize: 14.4
 figure.labelweight: normal
 figure.subplot.bottom: 0.11
 figure.subplot.hspace: 0.2

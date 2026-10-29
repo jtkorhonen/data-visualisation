@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: data-visualisation-2
+expected_outcome: |
+  Project uses styles/nature.mplstyle, figure_width_mm 89 with a documented height, png_dpi 600, README records size, dpi and the need to verify the live Nature guide; check_project.py passes with --size-mm 89x<height>. No multi-panel figure because none was requested.
+context:
+  scaffold_script: place-files.sh

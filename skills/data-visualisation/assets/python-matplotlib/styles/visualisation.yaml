@@ -1,7 +1,7 @@
 # Settings of the visualisation style that a Matplotlib style sheet cannot express.
 # Read by scripts/figure_style.py next to visualisation.mplstyle; lengths in points.
 
-figure_frame_linewidth: 1.16  # frame color is figure.edgecolor in the style sheet; 0 = no frame
+figure_frame_linewidth: 0  # no frame around the figure; a frame would use figure.edgecolor
 ylabel_rotation: 0  # degrees; 0 = horizontal
 ylabel_labelpad: 6  # pt between the tick labels and the y-axis label
 ylabel_horizontal_alignment: left

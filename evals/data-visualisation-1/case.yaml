@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: data-visualisation-1
+expected_outcome: |
+  A project scaffolded from assets/python-matplotlib/template with rainfall.csv in inputs/, one Snakemake rule per chart, black line-style encodings, 120 x 80 mm figures at 450 dpi, the May gap for north kept as a gap and the 0.0 for south in April shown as a real zero, a README, and check_project.py passing with --up-to-date.
+context:
+  scaffold_script: place-files.sh

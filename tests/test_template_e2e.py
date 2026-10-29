@@ -1,6 +1,7 @@
 # End-to-end tests: scaffold a project from assets/python-matplotlib/template, build it with uv and Snakemake,
 # and check the outputs with scripts/check_project.py. Needs uv and network or a warm uv cache.
 
+import re
 import shutil
 import subprocess
 import sys
@@ -103,12 +104,20 @@ def test_editing_the_style_sidecar_reruns_every_plot(built_project: Path) -> Non
 
 
 def test_default_style_renders_theme_clean_features(built_project: Path) -> None:
-    """Figure frame, dotted grey grid lines and the 1.16 pt line width of ggthemes::theme_clean()."""
+    """Dotted grey grid lines of ggthemes::theme_clean(), without its frame around the figure."""
     svg = (built_project / "outputs" / "figures" / "measurement_by_day.svg").read_text()
     assert "stroke-dasharray: 1.5544,4.6632" in svg.replace("\n", "")
     assert "stroke: #bebebe" in svg
     frame = svg.split('<g id="patch_1">')[1].split("</g>")[0]
-    assert "stroke: #000000" in frame and "stroke-width: 1.16" in frame
+    assert "stroke:" not in frame, "the figure background must have no outline"
+
+
+def test_in_figure_labels_match_tick_labels(built_project: Path) -> None:
+    """Direct labels inside the plot use the 9 pt tick label size."""
+    svg = (built_project / "outputs" / "figures" / "measurement_by_day.svg").read_text()
+    for label in ("control", "treated"):
+        [style] = re.findall(rf'<text style="([^"]*)"[^>]*>{label}</text>', svg)
+        assert "font-size: 9px" in style, style
 
 
 def test_editing_a_plot_script_reruns_only_its_rule(built_project: Path) -> None:

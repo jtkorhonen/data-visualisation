@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: data-visualisation-4
+expected_outcome: |
+  A project scaffolded from assets/r-ggplot2/template with styles/visualisation.R, DESCRIPTION, renv.lock, .Rprofile and renv/activate.R; readr with explicit col_types; one Snakemake rule per chart calling Rscript; the y-axis title horizontal above the panel via save_figure (not subtitle or tag); the May gap for north kept as a gap; no Python plotting code; a README with renv::restore() and uv sync; and check_project.py passing with --up-to-date.
+context:
+  scaffold_script: place-files.sh

@@ -23,7 +23,7 @@ Values are what lands in the exported figure at final printed size, in points
 | Tick labels | 9 pt, black |
 | Legend text | 11 pt |
 | Legend title | 12 pt, bold |
-| Annotations and other text | 12 pt |
+| Annotations and other text | 12 pt (9 pt in this style, see below) |
 | Maths and sub/superscripts | sans-serif, matching the text |
 
 ### Lines and marks
@@ -39,8 +39,9 @@ Values are what lands in the exported figure at final printed size, in points
 
 ### Frame and layout
 
-- A 1.16 pt black frame around the whole figure, on a white background.
-- 6 pt margin inside the frame.
+- A 1.16 pt black frame around the whole figure, on a white background (not drawn in this
+  style, see below).
+- 6 pt margin around the figure.
 - No border around the plot area.
 - A legend, when used, has a square 1.16 pt black frame and a white background.
 
@@ -50,6 +51,9 @@ Values are what lands in the exported figure at final printed size, in points
   dash-dot. Color is added only as allowed by the color policy in `SKILL.md`.
 - **y-axis label:** horizontal, above the top-left corner of the axes.
 - **Title:** above the y-axis label, padded so the two never overlap.
+- **No figure frame:** the figure has a white background and no outline around it.
+- **In-figure text:** direct labels, value labels and other annotations inside the plot
+  are 9 pt, the tick label size.
 
 ## Export
 
